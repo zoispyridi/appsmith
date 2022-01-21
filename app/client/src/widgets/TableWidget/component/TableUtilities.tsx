@@ -201,11 +201,18 @@ export const renderIconButton = (
   cellProperties: CellLayoutProperties,
 ) => {
   if (!props.columnActions)
-    return <CellWrapper cellProperties={cellProperties} isHidden={isHidden} />;
+    return (
+      <CellWrapper
+        cellProperties={cellProperties}
+        className="cell-wrapper"
+        isHidden={isHidden}
+      />
+    );
 
   return (
     <CellWrapper
       cellProperties={cellProperties}
+      className="cell-wrapper"
       isCellVisible={props.isCellVisible}
       isHidden={isHidden}
     >
@@ -311,6 +318,7 @@ export const renderActions = (
     return (
       <CellWrapper
         cellProperties={cellProperties}
+        className="cell-wrapper"
         isCellVisible={props.isCellVisible}
         isHidden={isHidden}
       />
@@ -319,6 +327,7 @@ export const renderActions = (
   return (
     <CellWrapper
       cellProperties={cellProperties}
+      className="cell-wrapper"
       isCellVisible={props.isCellVisible}
       isHidden={isHidden}
     >
@@ -348,6 +357,7 @@ export const renderMenuButton = (
   return (
     <CellWrapper
       cellProperties={cellProperties}
+      className="cell-wrapper"
       isCellVisible={props.isCellVisible}
       isHidden={isHidden}
     >
@@ -507,7 +517,13 @@ export const renderEmptyRows = (
               cellProps.style.background =
                 columns[0].columnProperties.cellBackground;
             }
-            return <div {...cellProps} className="td" key={cellIndex} />;
+            return (
+              <div
+                {...cellProps}
+                className="td empty-cell-wrapper"
+                key={cellIndex}
+              />
+            );
           })}
         </div>
       );
@@ -532,7 +548,7 @@ export const renderEmptyRows = (
               {tableColumns.map((column: any, colIndex: number) => {
                 return (
                   <div
-                    className="td"
+                    className="td empty-cell-wrapper"
                     key={colIndex}
                     style={{
                       width: column.width + "px",

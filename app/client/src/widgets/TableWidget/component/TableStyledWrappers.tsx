@@ -62,13 +62,20 @@ export const TableWrapper = styled.div<{
       background: ${Colors.WHITE};
       &.selected-row {
         background: ${Colors.NARVIK_GREEN}!important;
-      }
-      &:hover {
-        background: ${Colors.NARVIK_GREEN};
-
         .td {
           .cell-wrapper {
             background: ${Colors.NARVIK_GREEN};
+          }
+        }
+      }
+      &:hover {
+        background: ${Colors.NARVIK_GREEN};
+        .td {
+          .cell-wrapper {
+            background: ${Colors.NARVIK_GREEN};
+          }
+          &.empty-cell-wrapper {
+            background: ${Colors.NARVIK_GREEN} !important;
           }
         }
       }
@@ -113,6 +120,9 @@ export const TableWrapper = styled.div<{
       line-height: ${(props) => props.tableSizes.ROW_HEIGHT}px;
       padding: 0;
       transition: background-color 0.3s ease;
+      .cell-wrapper {
+        transition: background-color 0.3s ease;
+      }
     }
     .thead {
       position: sticky;
