@@ -24,6 +24,7 @@ export function InputText(props: {
   value: string;
   isValid: boolean;
   subtitle?: string;
+  initialValue?: string;
   validationMessage?: string;
   placeholder?: string;
   dataType?: string;
@@ -53,6 +54,7 @@ function renderComponent(
     placeholder: string;
     dataType?: InputType;
     disabled?: boolean;
+    initialValue?: string;
   } & {
     meta: Partial<WrappedFieldMetaProps>;
     input: Partial<WrappedFieldInputProps>;
@@ -61,6 +63,7 @@ function renderComponent(
   return (
     <TextInput
       dataType={props.dataType}
+      defaultValue={props.initialValue}
       disabled={props.disabled || false}
       name={props.input?.name}
       onChange={props.input.onChange}
