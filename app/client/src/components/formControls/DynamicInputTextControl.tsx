@@ -44,8 +44,17 @@ export function InputText(props: {
   inputType?: INPUT_TEXT_INPUT_TYPES;
   customStyles?: any;
   disabled?: boolean;
+  fixedKey?: string;
+  initialValue?: string;
 }) {
-  const { actionName, inputType, name, placeholder } = props;
+  const {
+    actionName,
+    fixedKey,
+    initialValue,
+    inputType,
+    name,
+    placeholder,
+  } = props;
   const dataTreePath = actionPathFromName(actionName, name);
   let editorProps = {};
 
@@ -67,15 +76,34 @@ export function InputText(props: {
       customStyle.minHeight = props.customStyles.minHeight;
     }
   }
+  const propsForFixedKeyInput = {
+    asyncControl: true,
+    fixedKey: fixedKey,
+    format: (value: any) => {
+      if (value) {
+        return value.value;
+      }
+      return "";
+    },
+    parse: (value: any) => {
+      // Store the value in this field as {key: fixedKey, value: <user-input>}
+      return {
+        key: fixedKey as string,
+        value: value,
+      };
+    },
+  };
   return (
     <div style={customStyle}>
       <StyledDynamicTextField
         dataTreePath={dataTreePath}
         disabled={props.disabled}
+        initialValue={initialValue}
         name={name}
         placeholder={placeholder}
         showLightningMenu={false}
         {...editorProps}
+        {...propsForFixedKeyInput}
       />
     </div>
   );
@@ -89,6 +117,8 @@ class DynamicInputTextControl extends BaseControl<DynamicInputControlProps> {
       configProperty,
       customStyles,
       disabled,
+      fixedKey,
+      initialValue,
       inputType,
       label,
       placeholderText,
@@ -104,6 +134,10 @@ class DynamicInputTextControl extends BaseControl<DynamicInputControlProps> {
         actionName={actionName}
         customStyles={customStyles}
         disabled={disabled}
+        fixedKey={fixedKey}
+        /* eslint-disable */
+        //@ts-ignore
+        initialValue={initialValue}
         inputType={inputTypeProp}
         label={label}
         name={configProperty}
@@ -121,6 +155,9 @@ export interface DynamicInputControlProps extends ControlProps {
   placeholderText: string;
   actionName: string;
   inputType?: INPUT_TEXT_INPUT_TYPES;
+  // inputType?: InputType;
+  // dataType?: InputType;
+  fixedKey?: string; //fixed Key is required for Fixed key inputs
 }
 
 const mapStateToProps = (state: AppState, props: DynamicInputControlProps) => {

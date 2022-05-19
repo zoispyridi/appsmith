@@ -23,6 +23,11 @@ class DynamicTextField extends React.Component<
       showLightningMenu?: boolean;
       height?: string;
       disabled?: boolean;
+      initialValue?: string;
+    } & {
+      asyncControl?: boolean;
+      format?: (value: any) => string;
+      parse?: (value: any) => { key: string; value: string };
     }
 > {
   render() {

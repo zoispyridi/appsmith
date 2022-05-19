@@ -62,10 +62,9 @@ class FormControlRegistry {
       formControlTypes.FIXED_KEY_INPUT,
       {
         buildPropertyControl(
-          controlProps: FixedKeyInputControlProps,
+          controlProps: DynamicInputControlProps,
         ): JSX.Element {
-          //TODO: may not be in use
-          return <FixedKeyInputControl {...controlProps} />;
+          return <DynamicInputTextControl {...controlProps} />;
         },
       },
     );

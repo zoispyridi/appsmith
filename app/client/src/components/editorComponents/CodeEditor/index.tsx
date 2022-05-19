@@ -180,6 +180,7 @@ export type EditorProps = EditorStyleProps &
     isRawView?: boolean;
     // Custom gutter
     customGutter?: CodeEditorGutter;
+    initialValue?: string;
   };
 
 type Props = ReduxStateProps &
@@ -278,7 +279,8 @@ class CodeEditor extends Component<Props, State> {
       options.gutters = Array.from(gutters);
 
       // Set value of the editor
-      const inputValue = getInputValue(this.props.input.value) || "";
+      const inputValue =
+        getInputValue(this.props.input.value) || this.props.initialValue || "";
       if (this.props.size === EditorSize.COMPACT) {
         options.value = removeNewLineChars(inputValue);
       } else {
