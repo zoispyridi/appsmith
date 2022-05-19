@@ -160,22 +160,24 @@ public class FileUtilsImpl implements FileInterface {
                     saveFile(applicationGitReference.getTheme(), baseRepo.resolve(CommonConstants.THEME + CommonConstants.JSON_EXTENSION), gson);
 
                     Path pageDirectory = baseRepo.resolve(PAGE_DIRECTORY);
-                    try {
-                        // Remove relevant directories to avoid any stale files
-                        FileUtils.deleteDirectory(pageDirectory.toFile());
-                        FileUtils.deleteDirectory(baseRepo.resolve(ACTION_DIRECTORY).toFile());
-                        FileUtils.deleteDirectory(baseRepo.resolve(ACTION_COLLECTION_DIRECTORY).toFile());
-                    } catch (IOException e) {
-                        log.debug("Unable to delete directory for path {} with message {}", pageDirectory, e.getMessage());
-                    }
                     // Save pages
+                    Set<String> validPageNames = new HashSet<>();
                     for (Map.Entry<String, Object> pageResource : applicationGitReference.getPages().entrySet()) {
                         final String pageName = pageResource.getKey();
                         Path pageSpecificDirectory = pageDirectory.resolve(pageName);
                         saveFile(pageResource.getValue(), pageSpecificDirectory.resolve(CommonConstants.CANVAS + CommonConstants.JSON_EXTENSION), gson);
+                        validPageNames.add(pageName);
+                    }
+
+                    if (applicationGitReference.getPages().isEmpty()) {
+                        deleteDirectory(pageDirectory);
+                    }
+                    else{
+                        scanAndDeleteDirectoryForDeletedResources(validPageNames, baseRepo.resolve(PAGE_DIRECTORY));
                     }
 
                     // Save actions
+                    HashMap<String, Set> validActionsMap = new HashMap<>();
                     for (Map.Entry<String, Object> resource : applicationGitReference.getActions().entrySet()) {
                         // queryName_pageName => nomenclature for the keys
                         // TODO
@@ -192,10 +194,24 @@ public class FileUtilsImpl implements FileInterface {
                                     pageSpecificDirectory.resolve(ACTION_DIRECTORY).resolve(queryName + CommonConstants.JSON_EXTENSION),
                                     gson
                             );
+
+                            Set<String> quriesSet = new HashSet<>();
+                            quriesSet.add(queryName + CommonConstants.JSON_EXTENSION);
+                            if(validActionsMap.containsKey(pageName)) {
+                                quriesSet.addAll(validActionsMap.get(pageName));
+                            }
+                            validActionsMap.put(pageName, quriesSet);
                         }
                     }
 
+                    validActionsMap.forEach((pageName, validActionNames) -> {
+                        Path pageSpecificDirectory = pageDirectory.resolve(pageName);
+                        scanAndDeleteFileForDeletedResources(validActionNames, pageSpecificDirectory.resolve(ACTION_DIRECTORY));
+                    });
+                    
+
                     // Save JSObjects
+                    HashMap<String, Set> validActionCollectionsMap = new HashMap<>();
                     for (Map.Entry<String, Object> resource : applicationGitReference.getActionsCollections().entrySet()) {
                         // JSObjectName_pageName => nomenclature for the keys
                         // TODO
@@ -210,8 +226,20 @@ public class FileUtilsImpl implements FileInterface {
                                     pageSpecificDirectory.resolve(ACTION_COLLECTION_DIRECTORY).resolve(actionCollectionName + CommonConstants.JSON_EXTENSION),
                                     gson
                             );
+
+                            Set<String> actionCollectionSet = new HashSet<>();
+                            actionCollectionSet.add(actionCollectionName + CommonConstants.JSON_EXTENSION);
+                            if(validActionCollectionsMap.containsKey(pageName)) {
+                                actionCollectionSet.addAll(validActionCollectionsMap.get(pageName));
+                            }
+                            validActionCollectionsMap.put(pageName, actionCollectionSet);
                         }
                     }
+
+                    validActionCollectionsMap.forEach((pageName, validActionCollectionNames) -> {
+                        Path pageSpecificDirectory = pageDirectory.resolve(pageName);
+                        scanAndDeleteFileForDeletedResources(validActionCollectionNames, pageSpecificDirectory.resolve(ACTION_COLLECTION_DIRECTORY));
+                    });
 
                     // Save datasources ref
                     for (Map.Entry<String, Object> resource : applicationGitReference.getDatasources().entrySet()) {
@@ -266,6 +294,24 @@ public class FileUtilsImpl implements FileInterface {
     }
 
     /**
+     * This method will delete the JSON resource directory available in local git directory on subsequent commit made after the
+     * deletion of respective resource from DB
+     * @param validResources resources those are still available in DB
+     * @param resourceDirectory directory which needs to be scanned for possible file deletion operations
+     */
+    private void scanAndDeleteDirectoryForDeletedResources(Set<String> validResources, Path resourceDirectory) {
+        // Scan resource directory and delete any unwanted directory if present
+        // unwanted directory : corresponding resource from DB has been deleted
+        try (Stream<Path> paths = Files.walk(resourceDirectory)) {
+            paths
+                    .filter(path -> Files.isDirectory(path) && !validResources.contains(path.getFileName().toString()))
+                    .forEach(this::deleteDirectory);
+        } catch (IOException e) {
+            log.debug("Error while scanning directory: {}, with error {}", resourceDirectory, e);
+        }
+    }
+
+    /**
      * This method will delete the file from local repo
      * @param filePath file that needs to be deleted
      */
@@ -281,6 +327,18 @@ public class FileUtilsImpl implements FileInterface {
         catch(IOException e)
         {
             log.debug("Unable to delete file, {}", e.getMessage());
+        }
+    }
+
+    /**
+     * This method will delete the directory and all its contents
+     * @param directory
+     */
+    private void deleteDirectory(Path directory){
+        try {
+            FileUtils.deleteDirectory(directory.toFile());
+        } catch (IOException e){
+            log.debug("Unable to delete directory for path {} with message {}", directory, e.getMessage());
         }
     }
 
