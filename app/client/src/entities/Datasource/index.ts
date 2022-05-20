@@ -1,6 +1,7 @@
 import { APIResponseError } from "api/ApiResponses";
 import { ActionConfig, Property } from "entities/Action";
 import _ from "lodash";
+import { DynamicPath } from "utils/DynamicBindingUtils";
 
 export enum AuthType {
   OAUTH2 = "oAuth2",
@@ -62,6 +63,7 @@ interface BaseDatasource {
   organizationId: string;
   isValid: boolean;
   isConfigured?: boolean;
+  dynamicBindingPathList: DynamicPath[];
 }
 
 export const isEmbeddedRestDatasource = (
@@ -117,6 +119,7 @@ export const DEFAULT_DATASOURCE = (
   datasourceConfiguration: {
     url: "",
   },
+  dynamicBindingPathList: [],
   invalids: [],
   isValid: true,
   pluginId,

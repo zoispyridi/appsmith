@@ -256,3 +256,6 @@ export const getBindingOrConfigPathsForEntitySelectorControl = (
 
 export const getDataTreeActionConfigPath = (propertyPath: string) =>
   propertyPath.replace("actionConfiguration.", "config.");
+
+export const getDataTreeDatasourceConfigPath = (propertyPath: string) =>
+  propertyPath.replace("datasourceConfiguration.", "config.");

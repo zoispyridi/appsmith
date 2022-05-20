@@ -4,6 +4,7 @@ import {
   getAppData,
   getPluginDependencyConfig,
   getPluginEditorConfigs,
+  getDatasources,
   getJSCollectionsForCurrentPage,
 } from "./entitiesSelector";
 import { ActionDataState } from "reducers/entityReducers/actionsReducer";
@@ -17,6 +18,7 @@ import { getSelectedAppThemeProperties } from "./appThemingSelectors";
 export const getUnevaluatedDataTree = createSelector(
   getActionsForCurrentPage,
   getJSCollectionsForCurrentPage,
+  getDatasources,
   getWidgets,
   getWidgetsMeta,
   getPageList,
@@ -27,6 +29,7 @@ export const getUnevaluatedDataTree = createSelector(
   (
     actions,
     jsActions,
+    datasources,
     widgets,
     widgetsMeta,
     pageListPayload,
@@ -39,6 +42,7 @@ export const getUnevaluatedDataTree = createSelector(
     return DataTreeFactory.create({
       actions,
       jsActions,
+      datasources,
       widgets,
       widgetsMeta,
       pageList,

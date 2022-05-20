@@ -10,6 +10,7 @@ import { PageListPayload } from "@appsmith/constants/ReduxActionConstants";
 import { ActionConfig, PluginType } from "entities/Action";
 import { AppDataState } from "reducers/entityReducers/appReducer";
 import { DependencyMap, DynamicPath } from "utils/DynamicBindingUtils";
+import { DataTreeDatasource } from "entities/DataTree/dataTreeDatasource";
 import { generateDataTreeAction } from "entities/DataTree/dataTreeAction";
 import { generateDataTreeJSAction } from "entities/DataTree/dataTreeJSAction";
 import { generateDataTreeWidget } from "entities/DataTree/dataTreeWidget";
@@ -23,6 +24,8 @@ import {
 } from "entities/DataTree/actionTriggers";
 import { AppTheme } from "entities/AppTheming";
 import { PluginId } from "api/PluginApi";
+import { Datasource } from "entities/Datasource";
+import { generateDataTreeDatasources } from "./dataTreeDatasource";
 
 export type ActionDispatcher = (
   ...args: any[]
@@ -33,6 +36,7 @@ export enum ENTITY_TYPE {
   WIDGET = "WIDGET",
   APPSMITH = "APPSMITH",
   JSACTION = "JSACTION",
+  DATASOURCE = "DATASOURCE",
 }
 
 export enum EvaluationSubstitutionType {
@@ -126,6 +130,7 @@ export interface DataTreeAppsmith extends Omit<AppDataState, "store"> {
 }
 export type DataTreeObjectEntity =
   | DataTreeAction
+  | DataTreeDatasource
   | DataTreeJSAction
   | DataTreeWidget
   | DataTreeAppsmith;
@@ -141,6 +146,7 @@ export type DataTree = {
 
 type DataTreeSeed = {
   actions: ActionDataState;
+  datasources: Datasource[];
   editorConfigs: Record<string, any[]>;
   pluginDependencyConfig: Record<string, DependencyMap>;
   widgets: CanvasWidgetsReduxState;
@@ -155,6 +161,7 @@ export class DataTreeFactory {
   static create({
     actions,
     appData,
+    datasources,
     editorConfigs,
     jsActions,
     pageList,
@@ -172,6 +179,10 @@ export class DataTreeFactory {
         editorConfig,
         dependencyConfig,
       );
+    });
+    datasources.forEach((ds) => {
+      const datasourceConfig = generateDataTreeDatasources(ds);
+      dataTree[ds.name] = datasourceConfig;
     });
     jsActions.forEach((js) => {
       dataTree[js.config.name] = generateDataTreeJSAction(js);
