@@ -35,7 +35,10 @@ export function generateDataTreeDatasources(
     id: datasource.id,
     ENTITY_TYPE: ENTITY_TYPE.DATASOURCE,
     config: datasource.datasourceConfiguration,
-    dynamicBindingPathList: datasource.dynamicBindingPathList,
+    dynamicBindingPathList: [
+      { key: "datasourceConfiguration.properties[0].value" },
+    ],
+    // dynamicBindingPathList: datasource?.dynamicBindingPathList.concat([{key:"datasourceConfiguration.properties[0].value"}]),
     bindingPaths: {},
     dependencyMap: dependencyMap,
   };

@@ -30,6 +30,7 @@ import { Variable } from "entities/JSCollection";
 import { PluginType } from "entities/Action";
 import { klona } from "klona/full";
 import { warn as logWarn } from "loglevel";
+import { DataTreeDatasource } from "entities/DataTree/dataTreeDatasource";
 
 // Dropdown1.options[1].value -> Dropdown1.options[1]
 // Dropdown1.options[1] -> Dropdown1.options
@@ -271,6 +272,16 @@ export function isAction(entity: DataTreeEntity): entity is DataTreeAction {
     typeof entity === "object" &&
     "ENTITY_TYPE" in entity &&
     entity.ENTITY_TYPE === ENTITY_TYPE.ACTION
+  );
+}
+
+export function isDatasource(
+  entity: DataTreeEntity,
+): entity is DataTreeDatasource {
+  return (
+    typeof entity === "object" &&
+    "ENTITY_TYPE" in entity &&
+    entity.ENTITY_TYPE === ENTITY_TYPE.DATASOURCE
   );
 }
 

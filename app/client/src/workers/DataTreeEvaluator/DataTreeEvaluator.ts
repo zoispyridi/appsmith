@@ -39,6 +39,7 @@ import {
   isAction,
   isDynamicLeaf,
   isJSAction,
+  isDatasource,
   isWidget,
   makeParentsDependOnChildren,
   removeFunctions,
@@ -287,6 +288,7 @@ export default class DataTreeEvaluator {
         jsUpdates: {},
       };
     }
+    /* eslint-disable */
     //find all differences which can lead to updating of dependency map
     const translatedDiffs = _.flatten(
       differences.map((diff) =>
@@ -476,7 +478,12 @@ export default class DataTreeEvaluator {
     this.allKeys = getAllPaths(unEvalTree);
     Object.keys(unEvalTree).forEach((entityName) => {
       const entity = unEvalTree[entityName];
-      if (isAction(entity) || isWidget(entity) || isJSAction(entity)) {
+      if (
+        isAction(entity) ||
+        isWidget(entity) ||
+        isJSAction(entity) ||
+        isDatasource(entity)
+      ) {
         const entityListedDependencies = this.listEntityDependencies(
           entity,
           entityName,
@@ -542,7 +549,7 @@ export default class DataTreeEvaluator {
       };
     }
 
-    if (isAction(entity) || isJSAction(entity)) {
+    if (isAction(entity) || isJSAction(entity) || isDatasource(entity)) {
       Object.entries(entity.dependencyMap).forEach(
         ([path, entityDependencies]) => {
           const actionDependentPaths: Array<string> = [];
@@ -577,7 +584,7 @@ export default class DataTreeEvaluator {
       }
     }
 
-    if (isAction(entity) || isWidget(entity)) {
+    if (isAction(entity) || isWidget(entity) || isDatasource(entity)) {
       // add the dynamic binding paths to the dependency map
       const dynamicBindingPathList = getEntityDynamicBindingPathList(entity);
       if (dynamicBindingPathList.length) {
