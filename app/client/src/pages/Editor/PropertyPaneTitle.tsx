@@ -122,46 +122,46 @@ const PropertyPaneTitle = memo(function PropertyPaneTitle(
     ],
   );
 
-  useEffect(() => {
-    if (props.isPanelTitle) return;
-    if (props.widgetId === newWidgetId) {
-      containerRef.current?.focus();
-    } else {
-      // Checks if the property pane opened not because of focusing an input inside a widget
-      if (
-        document.activeElement &&
-        ["input", "textarea"].indexOf(
-          document.activeElement?.tagName?.toLowerCase(),
-        ) === -1
-      )
-        setTimeout(
-          () => {
-            if (false) {
-              // TODO(aswathkk): Fix #15970 and focus on search bar
-              document
-                .querySelector(".propertyPaneSearch input")
-                // @ts-expect-error: Focus
-                ?.focus();
-            } else {
-              document
-                .querySelector(
-                  '.t--property-pane-section-wrapper [tabindex]:not([tabindex="-1"])',
-                )
-                // @ts-expect-error: Focus
-                ?.focus();
-            }
-          },
-          200, // Adding non zero time out as codemirror imports are loaded using idle callback. pr #13676
-        );
-    }
+  // useEffect(() => {
+  //   if (props.isPanelTitle) return;
+  //   if (props.widgetId === newWidgetId) {
+  //     containerRef.current?.focus();
+  //   } else {
+  //     // Checks if the property pane opened not because of focusing an input inside a widget
+  //     if (
+  //       document.activeElement &&
+  //       ["input", "textarea"].indexOf(
+  //         document.activeElement?.tagName?.toLowerCase(),
+  //       ) === -1
+  //     )
+  //       setTimeout(
+  //         () => {
+  //           if (false) {
+  //             // TODO(aswathkk): Fix #15970 and focus on search bar
+  //             document
+  //               .querySelector(".propertyPaneSearch input")
+  //               // @ts-expect-error: Focus
+  //               ?.focus();
+  //           } else {
+  //             document
+  //               .querySelector(
+  //                 '.t--property-pane-section-wrapper [tabindex]:not([tabindex="-1"])',
+  //               )
+  //               // @ts-expect-error: Focus
+  //               ?.focus();
+  //           }
+  //         },
+  //         200, // Adding non zero time out as codemirror imports are loaded using idle callback. pr #13676
+  //       );
+  //   }
 
-    return () => {
-      dispatch({
-        type: ReduxActionTypes.REMOVE_FROM_RECENTLY_ADDED_WIDGET,
-        payload: props.widgetId,
-      });
-    };
-  }, []);
+  //   return () => {
+  //     dispatch({
+  //       type: ReduxActionTypes.REMOVE_FROM_RECENTLY_ADDED_WIDGET,
+  //       payload: props.widgetId,
+  //     });
+  //   };
+  // }, []);
 
   useEffect(() => {
     setName(props.title);

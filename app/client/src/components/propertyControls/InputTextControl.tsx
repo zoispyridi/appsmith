@@ -12,6 +12,17 @@ import {
 } from "components/editorComponents/CodeEditor/EditorConfig";
 import { CollapseContext } from "pages/Editor/PropertyPane/PropertySection";
 import CodeEditor from "../editorComponents/LazyCodeEditorWrapper";
+import styled from "styled-components";
+
+const InputWrapper = styled(StyledDynamicInput)`
+  && .CodeMirror.CodeMirror-wrap {
+    border-color: transparent;
+  }
+
+  && .CodeMirror.CodeMirror-wrap:hover {
+    border-color: #e0dede;
+  }
+`;
 
 export function InputText(props: {
   label: string;
@@ -39,7 +50,7 @@ export function InputText(props: {
   const isOpen = useContext(CollapseContext);
 
   return (
-    <StyledDynamicInput>
+    <InputWrapper>
       <CodeEditor
         additionalDynamicData={props.additionalAutocomplete}
         border={CodeEditorBorder.ALL_SIDE}
@@ -59,7 +70,7 @@ export function InputText(props: {
         tabBehaviour={TabBehaviour.INDENT}
         theme={props.theme || EditorTheme.LIGHT}
       />
-    </StyledDynamicInput>
+    </InputWrapper>
   );
 }
 

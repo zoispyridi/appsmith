@@ -8,6 +8,18 @@ import {
   DS_EVENT,
   emitInteractionAnalyticsEvent,
 } from "utils/AppsmithUtils";
+import styled from "styled-components";
+
+const StyledColorPickerComponent = styled(ColorPickerComponent)`
+  border: 5px solid red;
+  input {
+    border-color: transparent;
+
+    &:hover {
+      border-color: var(--ads-color-black-250);
+    }
+  }
+`;
 
 class ColorPickerControl extends BaseControl<ColorPickerControlProps> {
   componentRef = React.createRef<HTMLDivElement>();
@@ -48,7 +60,7 @@ class ColorPickerControl extends BaseControl<ColorPickerControlProps> {
       : this.props.evaluatedValue;
 
     return (
-      <ColorPickerComponent
+      <StyledColorPickerComponent
         changeColor={this.handleChangeColor}
         color={
           this.props.propertyValue && isDynamicValue(this.props.propertyValue)

@@ -36,11 +36,16 @@ const IconSelectContainerStyles = createGlobalStyle<{
 const StyledButton = styled(Button)`
   box-shadow: none !important;
   border: 1px solid ${Colors.GREY_5};
+  border-color: transparent;
   border-radius: 0;
   height: 36px;
   background-color: #ffffff !important;
   > span.bp3-icon-caret-down {
     color: rgb(169, 167, 167);
+  }
+
+  &:hover {
+    border-color: var(--ads-color-black-250);
   }
 
   &:hover,

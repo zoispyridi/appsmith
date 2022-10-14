@@ -126,6 +126,15 @@ export const StyledDropDownContainer = styled.div`
 export const StyledDropDown = styled(Dropdown)`
   background-color: ${(props) => props.theme.colors.propertyPane.buttonText};
   box-shadow: none;
+
+  & {
+    border-color: transparent;
+  }
+
+  &:hover {
+    border-color: var(--ads-color-black-250);
+    background-color: transparent;
+  }
 `;
 
 export const StyledMenu = styled(Menu)`

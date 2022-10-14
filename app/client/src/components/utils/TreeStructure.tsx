@@ -2,6 +2,14 @@ import React from "react";
 import styled from "styled-components";
 
 const TreeStructureWrapper = styled.div`
+  &&&&& button.ur--has-border {
+    border-color: transparent;
+  }
+
+  &&&&& button.ur--has-border:hover {
+    border-color: var(--ads-color-black-250);
+  }
+
   li {
     list-style: none;
   }
