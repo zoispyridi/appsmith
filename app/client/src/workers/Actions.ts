@@ -267,11 +267,16 @@ export const DATA_TREE_FUNCTIONS: Record<
         };
       },
   },
-  postWindowMessage: function(message: unknown, targetOrigin: string) {
+  postWindowMessage: function(
+    message: unknown,
+    source: string,
+    targetOrigin: string,
+  ) {
     return {
       type: ActionTriggerType.POST_MESSAGE,
       payload: {
         message,
+        source,
         targetOrigin,
       },
       executionType: ExecutionType.TRIGGER,
