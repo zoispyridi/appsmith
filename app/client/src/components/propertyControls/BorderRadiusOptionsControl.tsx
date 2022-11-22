@@ -33,7 +33,7 @@ const options = Object.keys(borderRadiusOptions).map((optionKey) => ({
     >
       <button tabIndex={-1}>
         <div
-          className="w-5 h-5 border-t-2 border-l-2 border-gray-500"
+          className="w-3 h-3 border-t-2 border-l-2 border-gray-500"
           style={{ borderTopLeftRadius: borderRadiusOptions[optionKey] }}
         />
       </button>

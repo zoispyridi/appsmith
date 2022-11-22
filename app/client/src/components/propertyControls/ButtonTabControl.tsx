@@ -68,6 +68,7 @@ class ButtonTabControl extends BaseControl<ButtonTabControlProps> {
     const { options, propertyValue } = this.props;
     return (
       <ButtonTab
+        fullWidth
         options={options}
         ref={this.componentRef}
         selectButton={this.selectButton}

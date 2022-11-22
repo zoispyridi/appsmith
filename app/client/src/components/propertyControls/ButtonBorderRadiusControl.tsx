@@ -60,14 +60,14 @@ class ButtonBorderRadiusOptionsControl extends BaseControl<
       <StyledButtonGroup fill>
         <StyledButton
           active={propertyValue === ButtonBorderRadiusTypes.SHARP || undefined}
-          icon={<ControlIcons.BORDER_RADIUS_SHARP color="#979797" width={15} />}
+          icon={<ControlIcons.BORDER_RADIUS_SHARP color="#979797" width={12} />}
           large
           onClick={() => this.toggleOption(ButtonBorderRadiusTypes.SHARP)}
         />
         <StyledButton
           active={propertyValue === ButtonBorderRadiusTypes.ROUNDED}
           icon={
-            <ControlIcons.BORDER_RADIUS_ROUNDED color="#979797" width={15} />
+            <ControlIcons.BORDER_RADIUS_ROUNDED color="#979797" width={12} />
           }
           large
           onClick={() => this.toggleOption(ButtonBorderRadiusTypes.ROUNDED)}

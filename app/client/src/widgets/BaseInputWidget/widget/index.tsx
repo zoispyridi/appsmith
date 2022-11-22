@@ -12,6 +12,7 @@ import { DerivedPropertiesMap } from "utils/WidgetFactory";
 import BaseInputComponent from "../component";
 import { InputTypes } from "../constants";
 import { LabelPosition } from "components/constants";
+import { boxShadowOptions } from "constants/ThemeConstants";
 
 class BaseInputWidget<
   T extends BaseInputWidgetProps,
@@ -382,7 +383,26 @@ class BaseInputWidget<
             label: "Box Shadow",
             helpText:
               "Enables you to cast a drop shadow from the frame of the widget",
-            controlType: "BOX_SHADOW_OPTIONS",
+            controlType: "ICON_TABS",
+            fullWidth: true,
+            options: [
+              {
+                icon: "cross",
+                value: "none",
+              },
+              {
+                label: "Small",
+                value: boxShadowOptions.S,
+              },
+              {
+                label: "Medium",
+                value: boxShadowOptions.M,
+              },
+              {
+                label: "Large",
+                value: boxShadowOptions.L,
+              },
+            ],
             isJSConvertible: true,
             isBindProperty: true,
             isTriggerProperty: false,

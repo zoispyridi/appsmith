@@ -1,5 +1,5 @@
 import React from "react";
-import styled from "styled-components";
+// import styled from "styled-components";
 import { Alignment } from "@blueprintjs/core";
 
 import BaseControl, { ControlProps } from "./BaseControl";
@@ -10,15 +10,6 @@ import {
   DS_EVENT,
   emitInteractionAnalyticsEvent,
 } from "utils/AppsmithUtils";
-
-const ControlContainer = styled.div`
-  & > div:last-child {
-    display: flex;
-    & > div {
-      flex: 1;
-    }
-  }
-`;
 
 export interface LabelAlignmentOptionsControlProps extends ControlProps {
   propertyValue?: Alignment;
@@ -69,14 +60,12 @@ class LabelAlignmentOptionsControl extends BaseControl<
   public render() {
     const { options, propertyValue } = this.props;
     return (
-      <ControlContainer>
-        <ButtonTab
-          options={options}
-          ref={this.componentRef}
-          selectButton={this.handleAlign}
-          values={[propertyValue || Alignment.LEFT]}
-        />
-      </ControlContainer>
+      <ButtonTab
+        options={options}
+        ref={this.componentRef}
+        selectButton={this.handleAlign}
+        values={[propertyValue || Alignment.LEFT]}
+      />
     );
   }
 
