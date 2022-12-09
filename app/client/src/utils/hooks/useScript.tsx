@@ -50,7 +50,7 @@ export function useScript(src: string, where = AddScriptTo.BODY): ScriptStatus {
         // Create script
         script = document.createElement("script");
         script.src = src;
-        script.async = true;
+        // script.async = true;
         script.setAttribute("data-status", ScriptStatus.LOADING);
         if (where === AddScriptTo.HEAD) {
           // Add script to head
