@@ -239,15 +239,20 @@ export const FocusElementsConfig: Record<FocusEntity, Config[]> = {
   ],
   [FocusEntity.QUERY]: [
     {
+      name: FocusElement.FormControlField,
+      selector: getFocusableFormControlField,
+      setter: setFocusableFormControlField,
+    },
+    {
+      name: FocusElement.CodeEditor,
+      selector: getFocusableCodeEditorField,
+      setter: setFocusableCodeEditorField,
+    },
+    {
       name: FocusElement.QueryPaneConfigTabs,
       selector: getQueryPaneConfigSelectedTabIndex,
       setter: setQueryPaneConfigSelectedTabIndex,
       defaultValue: 0,
-    },
-    {
-      name: FocusElement.FormControlField,
-      selector: getFocusableFormControlField,
-      setter: setFocusableFormControlField,
     },
     {
       name: FocusElement.QueryPaneResponseTabs,

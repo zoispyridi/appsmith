@@ -29,7 +29,7 @@ function* setEditorFieldFocus(action: ReduxAction<CodeEditorFocusState>) {
     window.location.pathname,
     window.location.hash,
   );
-  const ignoredEntities = [FocusEntity.PROPERTY_PANE, FocusEntity.QUERY];
+  const ignoredEntities = [FocusEntity.PROPERTY_PANE];
 
   if (key) {
     if (!ignoredEntities.includes(entityInfo.entity)) {
@@ -74,9 +74,13 @@ function* setFocusFormControlFieldSaga(action: ReduxAction<{ key?: string }>) {
     window.location.hash,
   );
 
-  if (key) {
-    if (entityInfo.entity !== FocusEntity.DATASOURCE) {
+  if (entityInfo.entity !== FocusEntity.DATASOURCE) {
+    if (key) {
+      // Reset codeeditor focus fields for this route to avoid conflict
+      yield put(setFocusableCodeEditorField(""));
       yield put(setFocusableFormControlField(key));
+    } else {
+      yield put(setFocusableFormControlField(""));
     }
   }
 }

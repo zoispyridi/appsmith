@@ -19,14 +19,15 @@ import { FormControlProps } from "./FormControl";
 import { ToggleComponentToJsonHandler } from "components/editorComponents/form/ToggleComponentToJson";
 import styled from "styled-components";
 import { useDispatch, useSelector } from "react-redux";
+import { identifyEntityFromPath } from "navigation/FocusEntity";
+import { setFocusableFormControlFieldInit } from "actions/queryPaneActions";
+import { AppState } from "@appsmith/reducers";
 import {
   getPropertyControlFocusElement,
   shouldFocusOnPropertyControl,
 } from "utils/editorContextUtils";
-import { AppState } from "@appsmith/reducers";
-import { setFocusableFormControlFieldInit } from "actions/queryPaneActions";
 import { getShouldFocusControlField } from "selectors/editorContextSelectors";
-import { identifyEntityFromPath } from "navigation/FocusEntity";
+import FormControlTypes from "utils/formControl/formControlTypes";
 
 const FlexWrapper = styled.div`
   display: flex;
@@ -79,11 +80,18 @@ export default function FormConfig(props: FormConfigProps) {
     if (props.config.configProperty) {
       // Need an additional identifier to trigger another render when configProperty
       // are same for two different entitites
-      dispatch(
-        setFocusableFormControlFieldInit(
-          `${entityInfo.id}.${props.config.configProperty}`,
-        ),
-      );
+      switch (props.config.controlType) {
+        case FormControlTypes.QUERY_DYNAMIC_INPUT_TEXT:
+        case FormControlTypes.QUERY_DYNAMIC_TEXT:
+          dispatch(setFocusableFormControlFieldInit(""));
+          break;
+        default:
+          dispatch(
+            setFocusableFormControlFieldInit(
+              `${entityInfo.id}.${props.config.configProperty}`,
+            ),
+          );
+      }
     }
   };
 
