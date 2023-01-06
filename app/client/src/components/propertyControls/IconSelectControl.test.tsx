@@ -87,7 +87,7 @@ describe("<IconSelectControl /> - Keyboard navigation", () => {
       expect(screen.queryByRole("textbox")).toHaveFocus();
     }, waitForParamsForSearchFocus);
     userEvent.keyboard("{ArrowDown}");
-    expect(screen.queryByRole("textbox")).not.toHaveFocus();
+    expect(screen.queryByRole("textbox")).toHaveFocus();
   });
 
   it("Pressing '{Shift} + {ArrowUp}' while search is not in focus should focus search box", async () => {
@@ -99,7 +99,7 @@ describe("<IconSelectControl /> - Keyboard navigation", () => {
       expect(screen.queryByRole("textbox")).toHaveFocus();
     }, waitForParamsForSearchFocus);
     userEvent.keyboard("{ArrowDown}");
-    expect(screen.queryByRole("textbox")).not.toHaveFocus();
+    expect(screen.queryByRole("textbox")).toHaveFocus();
     userEvent.keyboard("{Shift}{ArrowUp}");
     await waitFor(() => {
       expect(screen.queryByRole("textbox")).toHaveFocus();
@@ -124,7 +124,7 @@ describe("<IconSelectControl /> - Keyboard navigation", () => {
       "bp3-icon-(none)",
     );
     // used to shift the focus from search
-    userEvent.keyboard("{ArrowDown}");
+    // userEvent.keyboard("{ArrowDown}");
 
     userEvent.keyboard("{ArrowDown}");
     expect(document.querySelector("a.bp3-active")?.children[0]).toHaveClass(
@@ -143,7 +143,7 @@ describe("<IconSelectControl /> - Keyboard navigation", () => {
       "bp3-icon-(none)",
     );
     // used to shift the focus from search
-    userEvent.keyboard("{ArrowDown}");
+    // userEvent.keyboard("{ArrowDown}");
 
     userEvent.keyboard("{ArrowDown}");
     userEvent.keyboard("{ArrowDown}");
@@ -169,7 +169,7 @@ describe("<IconSelectControl /> - Keyboard navigation", () => {
       "bp3-icon-(none)",
     );
     // used to shift the focus from search
-    userEvent.keyboard("{ArrowDown}");
+    // userEvent.keyboard("{ArrowDown}");
 
     userEvent.keyboard("{ArrowRight}");
     expect(document.querySelector("a.bp3-active")?.children[0]).toHaveClass(
@@ -188,7 +188,7 @@ describe("<IconSelectControl /> - Keyboard navigation", () => {
       "bp3-icon-(none)",
     );
     // used to shift the focus from search
-    userEvent.keyboard("{ArrowDown}");
+    // userEvent.keyboard("{ArrowDown}");
 
     userEvent.keyboard("{ArrowRight}");
     userEvent.keyboard("{ArrowRight}");
@@ -220,7 +220,7 @@ describe("<IconSelectControl /> - Keyboard navigation", () => {
     // used to shift the focus from search
     userEvent.keyboard("{ArrowDown}");
 
-    userEvent.keyboard("{ArrowDown}");
+    // userEvent.keyboard("{ArrowDown}");
     userEvent.keyboard("{ArrowRight}");
     expect(document.querySelector("a.bp3-active")?.children[0]).toHaveClass(
       "bp3-icon-add-row-top",
@@ -242,7 +242,7 @@ describe("<IconSelectControl /> - Keyboard navigation", () => {
     expect(document.querySelector("a.bp3-active")?.children[0]).toHaveClass(
       "bp3-icon-add-row-top",
     );
-    userEvent.keyboard("{ArrowDown}");
+    // userEvent.keyboard("{ArrowDown}");
     userEvent.keyboard("{ArrowRight}");
     userEvent.keyboard(" ");
     expect(handleOnSelect).toHaveBeenCalledTimes(2);
