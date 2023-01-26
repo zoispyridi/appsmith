@@ -69,15 +69,23 @@ export function deriveHighlightsFromLayers(
         layer?.children?.filter(
           (child: LayerChild) => draggedWidgets.indexOf(child.id) === -1,
         ).length === 0;
+
+      // Removing modal widget from highlight calculation
+      const finalLayer = {
+        children: layer?.children?.filter(
+          (child: LayerChild) => !widgets[child.id].detachFromLayout,
+        ),
+      };
+
       const childrenRows = getTotalRowsOfAllChildren(
         widgets,
-        layer.children?.map((child) => child.id) || [],
+        finalLayer.children?.map((child) => child.id) || [],
         isMobile,
       );
 
       const payload: VerticalHighlightsPayload = generateVerticalHighlights({
         widgets,
-        layer,
+        layer: finalLayer,
         childCount,
         layerIndex,
         offsetTop,
