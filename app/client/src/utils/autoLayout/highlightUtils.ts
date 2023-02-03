@@ -81,6 +81,14 @@ export function deriveHighlightsFromLayers(
 
   let offsetTop = FLEXBOX_PADDING; // used to calculate distance of a highlight from parents's top.
   for (const layer of layers) {
+    // Modal widget shouldn't be included in highlight calculation
+    const finalLayer = {
+      children: layer?.children?.filter(
+        (child: LayerChild) => !widgets[child.id].detachFromLayout,
+      ),
+    };
+    if (finalLayer.children?.length === 0) continue;
+
     /**
      * If the layer is empty, after discounting the dragged widgets,
      * then don't process it for vertical highlights.
@@ -89,13 +97,6 @@ export function deriveHighlightsFromLayers(
       layer?.children?.filter(
         (child: LayerChild) => draggedWidgets.indexOf(child.id) === -1,
       ).length === 0;
-
-    // Removing modal widget from highlight calculation
-    const finalLayer = {
-      children: layer?.children?.filter(
-        (child: LayerChild) => !widgets[child.id].detachFromLayout,
-      ),
-    };
 
     const childrenRows = getTotalRowsOfAllChildren(
       widgets,
