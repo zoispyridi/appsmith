@@ -18,6 +18,7 @@ import {
 } from "utils/hooks/dragResizeHooks";
 import { useWidgetSelection } from "utils/hooks/useWidgetSelection";
 import { WidgetProps } from "widgets/BaseWidget";
+import { SelectionRequestType } from "sagas/WidgetSelectUtils";
 
 const DraggableWrapper = styled.div`
   display: block;
@@ -115,10 +116,11 @@ function DraggableComponent(props: DraggableComponentProps) {
       focusWidget(props.widgetId);
     e.stopPropagation();
   };
-  const shouldRenderComponent = !(isSelected && isDragging);
+  const shouldRenderComponent =
+    props.isFlexChild || !(isSelected && isDragging);
   // Display this draggable based on the current drag state
   const dragWrapperStyle: CSSProperties = {
-    display: isCurrentWidgetDragging ? "none" : "block",
+    display: !props.isFlexChild && isCurrentWidgetDragging ? "none" : "block",
   };
   const dragBoundariesStyle: React.CSSProperties = useMemo(() => {
     return {
@@ -158,7 +160,7 @@ function DraggableComponent(props: DraggableComponentProps) {
       if (!isFocused) return;
 
       if (!isSelected) {
-        selectWidget(props.widgetId);
+        selectWidget(SelectionRequestType.One, [props.widgetId]);
       }
       const widgetHeight = props.bottomRow - props.topRow;
       const widgetWidth = props.rightColumn - props.leftColumn;
