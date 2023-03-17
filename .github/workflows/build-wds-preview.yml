@@ -19,4 +19,4 @@ jobs:
           issue-type: pull-request
           token: ${{ secrets.APPSMITH_DEPLOY_PREVIEW_PAT }}
           commands: |
-            build-deploy-preview
+            build-wds-preview

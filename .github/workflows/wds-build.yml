@@ -2,6 +2,7 @@ name: Build WDS Vercel Preview
 on:
   issue_comment:
   workflow_dispatch:
+  
   repository_dispatch:
     types: [ build-wds-preview-command ]
 
