@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 jobs:
   vercel-build:
-    if: ${{ github.event.issue.pull_request && contains(github.event.comment.body, '/build-wds-preview') }}
+    # if: ${{ github.event.issue.pull_request && contains(github.event.comment.body, '/build-wds-preview') }}
     name: vercel-wds-build
     runs-on: ubuntu-latest
     defaults:
