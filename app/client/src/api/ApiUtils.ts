@@ -4,14 +4,15 @@ import {
   ERROR_500,
   SERVER_API_TIMEOUT_ERROR,
 } from "@appsmith/constants/messages";
-import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
+import type { AxiosRequestConfig, AxiosResponse } from "axios";
+import axios from "axios";
 import {
   API_STATUS_CODES,
   ERROR_CODES,
   SERVER_ERROR_CODES,
 } from "@appsmith/constants/ApiConstants";
 import log from "loglevel";
-import { ActionExecutionResponse } from "api/ActionAPI";
+import type { ActionExecutionResponse } from "api/ActionAPI";
 import store from "store";
 import { logoutUser } from "actions/userActions";
 import { AUTH_LOGIN_URL } from "constants/routes";
@@ -20,6 +21,8 @@ import getQueryParamsObject from "utils/getQueryParamsObject";
 import { UserCancelledActionExecutionError } from "sagas/ActionExecution/errorUtils";
 import AnalyticsUtil from "utils/AnalyticsUtil";
 import { getAppsmithConfigs } from "ce/configs";
+import * as Sentry from "@sentry/react";
+import { CONTENT_TYPE_HEADER_KEY } from "constants/ApiEditorConstants/CommonApiConstants";
 
 const executeActionRegex = /actions\/execute/;
 const timeoutErrorRegex = /timeout of (\d+)ms exceeded/;
@@ -44,6 +47,13 @@ const is404orAuthPath = () => {
 // execution request
 export const apiRequestInterceptor = (config: AxiosRequestConfig) => {
   config.headers = config.headers ?? {};
+
+  // Add header for CSRF protection.
+  const methodUpper = config.method?.toUpperCase();
+  if (methodUpper && methodUpper !== "GET" && methodUpper !== "HEAD") {
+    config.headers["X-Requested-By"] = "Appsmith";
+  }
+
   const branch =
     getCurrentGitBranch(store.getState()) || getQueryParamsObject().branch;
   if (branch && config.headers) {
@@ -71,6 +81,14 @@ export const apiSuccessResponseInterceptor = (
     if (response.config.url.match(executeActionRegex)) {
       return makeExecuteActionResponse(response);
     }
+  }
+  if (
+    response.headers[CONTENT_TYPE_HEADER_KEY] === "application/json" &&
+    !response.data.responseMeta
+  ) {
+    Sentry.captureException(new Error("Api responded without response meta"), {
+      contexts: { response: response.data },
+    });
   }
   return response.data;
 };
@@ -135,11 +153,11 @@ export const apiFailureResponseInterceptor = (error: any) => {
           show: false,
         });
       }
-      const errorData = error.response.data.responseMeta;
+      const errorData = error.response.data.responseMeta ?? {};
       if (
         errorData.status === API_STATUS_CODES.RESOURCE_NOT_FOUND &&
-        (errorData.error.code === SERVER_ERROR_CODES.RESOURCE_NOT_FOUND ||
-          errorData.error.code === SERVER_ERROR_CODES.UNABLE_TO_FIND_PAGE)
+        (SERVER_ERROR_CODES.RESOURCE_NOT_FOUND.includes(errorData.error.code) ||
+          SERVER_ERROR_CODES.UNABLE_TO_FIND_PAGE.includes(errorData.error.code))
       ) {
         return Promise.reject({
           code: ERROR_CODES.PAGE_NOT_FOUND,
@@ -151,6 +169,9 @@ export const apiFailureResponseInterceptor = (error: any) => {
     if (error.response.data.responseMeta) {
       return Promise.resolve(error.response.data);
     }
+    Sentry.captureException(new Error("Api responded without response meta"), {
+      contexts: { response: error.response.data },
+    });
     return Promise.reject(error.response.data);
   } else if (error.request) {
     // The request was made but no response was received

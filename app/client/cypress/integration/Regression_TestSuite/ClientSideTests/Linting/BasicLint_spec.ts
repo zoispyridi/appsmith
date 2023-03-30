@@ -26,11 +26,11 @@ const clickButtonAndAssertLintError = (
   if (shouldExist) {
     agHelper.AssertElementExist(locator._lintErrorElement);
     agHelper.ClickButton("Submit");
-    agHelper.ValidateToastMessage(errorMessage);
+    agHelper.AssertContains(errorMessage);
   } else {
     agHelper.AssertElementAbsence(locator._lintErrorElement);
     agHelper.ClickButton("Submit");
-    agHelper.ValidateToastMessage(successMessage);
+    agHelper.AssertContains(successMessage);
   }
 
   //Reload and Check for presence/ absence of lint error
@@ -55,7 +55,7 @@ describe("Linting", () => {
     ee.NavigateToSwitcher("explorer");
     dataSources.CreateDataSource("MySql");
     cy.get("@dsName").then(($dsName) => {
-      dsName = ($dsName as unknown) as string;
+      dsName = $dsName as unknown as string;
     });
   });
 
@@ -73,7 +73,7 @@ describe("Linting", () => {
       }()}}`,
     );
 
-    propPane.UpdatePropertyFieldValue("Tooltip", "{{Api1.name}}");
+    propPane.UpdatePropertyFieldValue("Tooltip", "{{Api1.config.httpMethod}}");
     clickButtonAndAssertLintError(true);
 
     // create Api1
@@ -143,7 +143,6 @@ describe("Linting", () => {
     ee.ExpandCollapseEntity("Queries/JS");
     ee.ActionContextMenuByEntityName("JSObject1", "Delete", "Are you sure?");
     ee.SelectEntityByName("Button1", "Widgets");
-
     clickButtonAndAssertLintError(true);
 
     // Re-create JSObject, lint error should be gone
@@ -192,7 +191,7 @@ describe("Linting", () => {
       }
     }()}}`,
     );
-    propPane.UpdatePropertyFieldValue("Tooltip", `{{Query1.name}}`);
+    propPane.UpdatePropertyFieldValue("Tooltip", `{{Query1.ENTITY_TYPE}}`);
     clickButtonAndAssertLintError(true);
 
     createMySQLDatasourceQuery();
@@ -239,7 +238,7 @@ describe("Linting", () => {
     );
     propPane.UpdatePropertyFieldValue(
       "Tooltip",
-      `{{Api1.name + JSObject1.myVar1 + Query1.name}}`,
+      `{{Api1.config.httpMethod + JSObject1.myVar1 + Query1.ENTITY_TYPE}}`,
     );
 
     clickButtonAndAssertLintError(false);

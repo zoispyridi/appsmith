@@ -1,12 +1,14 @@
 import { call, fork, put, race, select, take } from "redux-saga/effects";
-import {
+import type {
   ReduxAction,
   ReduxActionWithPromise,
+} from "@appsmith/constants/ReduxActionConstants";
+import {
   ReduxActionTypes,
   ReduxActionErrorTypes,
 } from "@appsmith/constants/ReduxActionConstants";
 import { reset } from "redux-form";
-import UserApi, {
+import type {
   CreateUserRequest,
   CreateUserResponse,
   ForgotPasswordRequest,
@@ -15,9 +17,10 @@ import UserApi, {
   UpdateUserRequest,
   LeaveWorkspaceRequest,
 } from "@appsmith/api/UserApi";
+import UserApi from "@appsmith/api/UserApi";
 import { AUTH_LOGIN_URL, SETUP } from "constants/routes";
 import history from "utils/history";
-import { ApiResponse } from "api/ApiResponses";
+import type { ApiResponse } from "api/ApiResponses";
 import {
   validateResponse,
   getResponseErrorMessage,
@@ -39,7 +42,8 @@ import PerformanceTracker, {
   PerformanceTransactionName,
 } from "utils/PerformanceTracker";
 import { ERROR_CODES } from "@appsmith/constants/ApiConstants";
-import { ANONYMOUS_USERNAME, User } from "constants/userConstants";
+import type { User } from "constants/userConstants";
+import { ANONYMOUS_USERNAME } from "constants/userConstants";
 import { flushErrorsAndRedirect } from "actions/errorActions";
 import localStorage from "utils/localStorage";
 import { Toaster, Variant } from "design-system-old";
@@ -65,8 +69,8 @@ import {
   segmentInitUncertain,
   segmentInitSuccess,
 } from "actions/analyticsActions";
-import { SegmentState } from "reducers/uiReducers/analyticsReducer";
-import FeatureFlags from "entities/FeatureFlags";
+import type { SegmentState } from "reducers/uiReducers/analyticsReducer";
+import type FeatureFlags from "entities/FeatureFlags";
 import UsagePulse from "usagePulse";
 
 export function* createUserSaga(
@@ -110,7 +114,6 @@ export function* createUserSaga(
 
 export function* waitForSegmentInit(skipWithAnonymousId: boolean) {
   if (skipWithAnonymousId && AnalyticsUtil.getAnonymousId()) return;
-  yield call(waitForFetchUserSuccess);
   const currentUser: User | undefined = yield select(getCurrentUser);
   const segmentState: SegmentState | undefined = yield select(getSegmentState);
   const appsmithConfig = getAppsmithConfigs();
@@ -165,56 +168,10 @@ export function* getCurrentUserSaga() {
     const isValidResponse: boolean = yield validateResponse(response);
 
     if (isValidResponse) {
-      //@ts-expect-error: response is of type unknown
-      const { enableTelemetry } = response.data;
-
-      if (enableTelemetry) {
-        const promise = initializeAnalyticsAndTrackers();
-
-        if (promise instanceof Promise) {
-          const result: boolean = yield promise;
-
-          if (result) {
-            yield put(segmentInitSuccess());
-          } else {
-            yield put(segmentInitUncertain());
-          }
-        }
-      }
-
-      if (
-        //@ts-expect-error: response is of type unknown
-        !response.data.isAnonymous &&
-        //@ts-expect-error: response is of type unknown
-        response.data.username !== ANONYMOUS_USERNAME
-      ) {
-        //@ts-expect-error: response is of type unknown
-        enableTelemetry && AnalyticsUtil.identifyUser(response.data);
-      }
-
-      /*
-       * Forking it as we don't want to block application flow
-       */
-      yield fork(initiateUsageTracking, {
-        //@ts-expect-error: response is of type unknown
-        isAnonymousUser: response.data.isAnonymous,
-        enableTelemetry,
-      });
-      yield put(initAppLevelSocketConnection());
-      yield put(initPageLevelSocketConnection());
       yield put({
         type: ReduxActionTypes.FETCH_USER_DETAILS_SUCCESS,
         payload: response.data,
       });
-
-      //@ts-expect-error: response is of type unknown
-      if (response.data.emptyInstance) {
-        history.replace(SETUP);
-      }
-
-      PerformanceTracker.stopAsyncTracking(
-        PerformanceTransactionName.USER_ME_API,
-      );
     }
   } catch (error) {
     PerformanceTracker.stopAsyncTracking(
@@ -235,6 +192,50 @@ export function* getCurrentUserSaga() {
       },
     });
   }
+}
+
+export function* runUserSideEffectsSaga() {
+  const currentUser: User = yield select(getCurrentUser);
+  const { enableTelemetry } = currentUser;
+
+  if (enableTelemetry) {
+    const promise = initializeAnalyticsAndTrackers();
+
+    if (promise instanceof Promise) {
+      const result: boolean = yield promise;
+
+      if (result) {
+        yield put(segmentInitSuccess());
+      } else {
+        yield put(segmentInitUncertain());
+      }
+    }
+  }
+
+  if (
+    //@ts-expect-error: response is of type unknown
+    !currentUser.isAnonymous &&
+    currentUser.username !== ANONYMOUS_USERNAME
+  ) {
+    enableTelemetry && AnalyticsUtil.identifyUser(currentUser);
+  }
+
+  /*
+   * Forking it as we don't want to block application flow
+   */
+  yield fork(initiateUsageTracking, {
+    //@ts-expect-error: response is of type unknown
+    isAnonymousUser: currentUser.isAnonymous,
+    enableTelemetry,
+  });
+  yield put(initAppLevelSocketConnection());
+  yield put(initPageLevelSocketConnection());
+
+  if (currentUser.emptyInstance) {
+    history.replace(SETUP);
+  }
+
+  PerformanceTracker.stopAsyncTracking(PerformanceTransactionName.USER_ME_API);
 }
 
 export function* forgotPasswordSaga(
@@ -536,11 +537,10 @@ export function* updateFirstTimeUserOnboardingSage() {
   const enable: string | null = yield getEnableFirstTimeUserOnboarding();
 
   if (enable) {
-    const applicationId: string = yield getFirstTimeUserOnboardingApplicationId() ||
-      "";
-    const introModalVisibility:
-      | string
-      | null = yield getFirstTimeUserOnboardingIntroModalVisibility();
+    const applicationId: string =
+      yield getFirstTimeUserOnboardingApplicationId() || "";
+    const introModalVisibility: string | null =
+      yield getFirstTimeUserOnboardingIntroModalVisibility();
     yield put({
       type: ReduxActionTypes.SET_ENABLE_FIRST_TIME_USER_ONBOARDING,
       payload: true,

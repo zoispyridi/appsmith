@@ -25,13 +25,13 @@ import {
   fetchActions,
 } from "actions/pluginActionActions";
 import { fetchPluginFormConfigs, fetchPlugins } from "actions/pluginActions";
+import type { ApplicationPayload } from "@appsmith/constants/ReduxActionConstants";
 import {
-  ApplicationPayload,
   ReduxActionErrorTypes,
   ReduxActionTypes,
 } from "@appsmith/constants/ReduxActionConstants";
 import { addBranchParam } from "constants/routes";
-import { APP_MODE } from "entities/App";
+import type { APP_MODE } from "entities/App";
 import { call, put, select } from "redux-saga/effects";
 import { failFastApiCalls } from "sagas/InitSagas";
 import { getCurrentApplication } from "selectors/editorSelectors";
@@ -41,15 +41,18 @@ import history from "utils/history";
 import PerformanceTracker, {
   PerformanceTransactionName,
 } from "utils/PerformanceTracker";
+import type { AppEnginePayload } from ".";
 import AppEngine, {
   ActionsNotFoundError,
-  AppEnginePayload,
   PluginFormConfigsNotFoundError,
   PluginsNotFoundError,
 } from ".";
 import { fetchJSLibraries } from "actions/JSLibraryActions";
 import CodemirrorTernService from "utils/autocomplete/CodemirrorTernService";
-import { waitForSegmentInit } from "ce/sagas/userSagas";
+import {
+  waitForSegmentInit,
+  waitForFetchUserSuccess,
+} from "ce/sagas/userSagas";
 
 export default class AppEditorEngine extends AppEngine {
   constructor(mode: APP_MODE) {
@@ -132,6 +135,7 @@ export default class AppEditorEngine extends AppEngine {
         `Unable to fetch actions for the application: ${applicationId}`,
       );
 
+    yield call(waitForFetchUserSuccess);
     yield call(waitForSegmentInit, true);
     yield put(fetchAllPageEntityCompletion([executePageLoadActions()]));
   }

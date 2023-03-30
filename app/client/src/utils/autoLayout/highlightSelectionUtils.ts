@@ -1,4 +1,4 @@
-import { HighlightInfo } from "./highlightUtils";
+import type { HighlightInfo } from "./autoLayoutTypes";
 
 export interface Point {
   x: number;
@@ -118,5 +118,5 @@ function calculateDistance(a: HighlightInfo, b: Point): number {
       distX = 0;
     }
   }
-  return Math.abs(Math.sqrt(distX * distX + distY * distY));
+  return Math.hypot(distX, distY);
 }

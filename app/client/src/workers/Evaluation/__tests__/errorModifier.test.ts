@@ -1,8 +1,8 @@
-import { DataTree } from "entities/DataTree/dataTreeFactory";
+import type { DataTree } from "entities/DataTree/dataTreeFactory";
 import { errorModifier } from "../errorModifier";
 
 describe("Test error modifier", () => {
-  const dataTree = ({
+  const dataTree = {
     Api2: {
       run: {},
       clear: {},
@@ -72,8 +72,7 @@ describe("Test error modifier", () => {
       actionId: "637cda3b2f8e175c6f5269d5",
       pluginType: "JS",
       ENTITY_TYPE: "JSACTION",
-      body:
-        "export default {\n\tstoreTest2: () => {\n\t\tlet values = [\n\t\t\t\t\tstoreValue('val1', 'number 1'),\n\t\t\t\t\tstoreValue('val2', 'number 2'),\n\t\t\t\t\tstoreValue('val3', 'number 3'),\n\t\t\t\t\tstoreValue('val4', 'number 4')\n\t\t\t\t];\n\t\treturn Promise.all(values)\n\t\t\t.then(() => {\n\t\t\tshowAlert(JSON.stringify(appsmith.store))\n\t\t})\n\t\t\t.catch((err) => {\n\t\t\treturn showAlert('Could not store values in store ' + err.toString());\n\t\t})\n\t},\n\tnewFunction: function() {\n\t\tJSObject1.storeTest()\n\t}\n}",
+      body: "export default {\n\tstoreTest2: () => {\n\t\tlet values = [\n\t\t\t\t\tstoreValue('val1', 'number 1'),\n\t\t\t\t\tstoreValue('val2', 'number 2'),\n\t\t\t\t\tstoreValue('val3', 'number 3'),\n\t\t\t\t\tstoreValue('val4', 'number 4')\n\t\t\t\t];\n\t\treturn Promise.all(values)\n\t\t\t.then(() => {\n\t\t\tshowAlert(JSON.stringify(appsmith.store))\n\t\t})\n\t\t\t.catch((err) => {\n\t\t\treturn showAlert('Could not store values in store ' + err.toString());\n\t\t})\n\t},\n\tnewFunction: function() {\n\t\tJSObject1.storeTest()\n\t}\n}",
       meta: {
         newFunction: {
           arguments: [],
@@ -119,7 +118,7 @@ describe("Test error modifier", () => {
         },
       },
     },
-  } as unknown) as DataTree;
+  } as unknown as DataTree;
 
   beforeAll(() => {
     errorModifier.updateAsyncFunctions(dataTree);
@@ -130,9 +129,11 @@ describe("Test error modifier", () => {
     error.name = "TypeError";
     error.message = "Api2.run is not a function";
     const result = errorModifier.run(error);
-    expect(result).toEqual(
-      "Found a reference to Api2.run() during evaluation. Sync fields cannot execute framework actions. Please remove any direct/indirect references to Api2.run() and try again.",
-    );
+    expect(result).toEqual({
+      name: "ValidationError",
+      message:
+        "Found a reference to Api2.run() during evaluation. Sync fields cannot execute framework actions. Please remove any direct/indirect references to Api2.run() and try again.",
+    });
   });
 
   it("TypeError for undefined Api in sync field ", () => {
@@ -140,7 +141,10 @@ describe("Test error modifier", () => {
     error.name = "TypeError";
     error.message = "Api1.run is not a function";
     const result = errorModifier.run(error);
-    expect(result).toEqual("TypeError: Api1.run is not a function");
+    expect(result).toEqual({
+      name: "TypeError",
+      message: "Api1.run is not a function",
+    });
   });
 
   it("ReferenceError for platform function in sync field", () => {
@@ -148,9 +152,11 @@ describe("Test error modifier", () => {
     error.name = "ReferenceError";
     error.message = "storeValue is not defined";
     const result = errorModifier.run(error);
-    expect(result).toEqual(
-      "Found a reference to storeValue() during evaluation. Sync fields cannot execute framework actions. Please remove any direct/indirect references to storeValue() and try again.",
-    );
+    expect(result).toEqual({
+      name: "ValidationError",
+      message:
+        "Found a reference to storeValue() during evaluation. Sync fields cannot execute framework actions. Please remove any direct/indirect references to storeValue() and try again.",
+    });
   });
 
   it("ReferenceError for undefined function in sync field", () => {
@@ -158,6 +164,9 @@ describe("Test error modifier", () => {
     error.name = "ReferenceError";
     error.message = "storeValue2 is not defined";
     const result = errorModifier.run(error);
-    expect(result).toEqual("ReferenceError: storeValue2 is not defined");
+    expect(result).toEqual({
+      name: error.name,
+      message: error.message,
+    });
   });
 });

@@ -3,7 +3,7 @@ const datasourceEditor = require("../../../../locators/DatasourcesEditor.json");
 const dsl = require("../../../../fixtures/noiseDsl.json");
 const commonlocators = require("../../../../locators/commonlocators.json");
 
-describe("MySQL noise test", function() {
+describe("MySQL noise test", function () {
   let datasourceName;
 
   beforeEach(() => {
@@ -11,7 +11,7 @@ describe("MySQL noise test", function() {
     cy.startRoutesForDatasource();
   });
 
-  it("Verify after killing MySQL session, app should not crash", function() {
+  it("Verify after killing MySQL session, app should not crash", function () {
     cy.NavigateToDatasourceEditor();
     cy.get(datasourceEditor.MySQL).click();
     cy.generateUUID().then((uid) => {
@@ -66,8 +66,8 @@ describe("MySQL noise test", function() {
       expect(response.body.data.statusCode).to.eq("200 OK");
     });
     cy.wait("@postExecute").then(({ response }) => {
-      expect(response.body.data.statusCode).to.eq("5000");
-      expect(response.body.data.title).to.eq("Query execution error");
+      expect(response.body.data.statusCode).to.eq("PE-STC-5000");
+      expect(response.body.data.title).to.eq("Connection is stale");
     });
   });
 });

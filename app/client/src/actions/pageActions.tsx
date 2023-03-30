@@ -1,29 +1,32 @@
-import { WidgetType } from "constants/WidgetConstants";
-import {
+import type { WidgetType } from "constants/WidgetConstants";
+import type {
   EvaluationReduxAction,
   ReduxAction,
-  ReduxActionTypes,
   UpdateCanvasPayload,
+  AnyReduxAction,
+} from "@appsmith/constants/ReduxActionConstants";
+import {
+  ReduxActionTypes,
   ReduxActionErrorTypes,
   WidgetReduxActionTypes,
   ReplayReduxActionTypes,
-  AnyReduxAction,
 } from "@appsmith/constants/ReduxActionConstants";
+import type { DynamicPath } from "utils/DynamicBindingUtils";
 import AnalyticsUtil from "utils/AnalyticsUtil";
-import { WidgetOperation } from "widgets/BaseWidget";
-import {
+import type { WidgetOperation } from "widgets/BaseWidget";
+import type {
   FetchPageRequest,
   PageLayout,
   SavePageResponse,
   UpdatePageRequest,
   UpdatePageResponse,
 } from "api/PageApi";
-import { UrlDataState } from "reducers/entityReducers/appReducer";
-import { APP_MODE } from "entities/App";
-import { CanvasWidgetsReduxState } from "reducers/entityReducers/canvasWidgetsReducer";
-import { GenerateTemplatePageRequest } from "api/PageApi";
-import { ENTITY_TYPE } from "entities/AppsmithConsole";
-import { Replayable } from "entities/Replay/ReplayEntity/ReplayEditor";
+import type { UrlDataState } from "reducers/entityReducers/appReducer";
+import type { APP_MODE } from "entities/App";
+import type { CanvasWidgetsReduxState } from "reducers/entityReducers/canvasWidgetsReducer";
+import type { GenerateTemplatePageRequest } from "api/PageApi";
+import type { ENTITY_TYPE } from "entities/AppsmithConsole";
+import type { Replayable } from "entities/Replay/ReplayEntity/ReplayEditor";
 
 export interface FetchPageListPayload {
   applicationId: string;
@@ -81,10 +84,11 @@ export const fetchPageSuccess = (): EvaluationReduxAction<undefined> => {
   };
 };
 
-export const fetchPublishedPageSuccess = (): EvaluationReduxAction<undefined> => ({
-  type: ReduxActionTypes.FETCH_PUBLISHED_PAGE_SUCCESS,
-  payload: undefined,
-});
+export const fetchPublishedPageSuccess =
+  (): EvaluationReduxAction<undefined> => ({
+    type: ReduxActionTypes.FETCH_PUBLISHED_PAGE_SUCCESS,
+    payload: undefined,
+  });
 
 /**
  * After all page entities are fetched like DSL, actions and JsObjects,
@@ -181,6 +185,24 @@ export const createPage = (
   };
 };
 
+export const createNewPageFromEntities = (
+  applicationId: string,
+  pageName: string,
+  blockNavigation?: boolean,
+) => {
+  AnalyticsUtil.logEvent("CREATE_PAGE", {
+    pageName,
+  });
+  return {
+    type: ReduxActionTypes.CREATE_NEW_PAGE_FROM_ENTITIES,
+    payload: {
+      applicationId,
+      name: pageName,
+      blockNavigation,
+    },
+  };
+};
+
 /**
  * action to clone page
  *
@@ -254,6 +276,7 @@ export type WidgetAddChild = {
   newWidgetId: string;
   tabId: string;
   props?: Record<string, any>;
+  dynamicBindingPathList?: DynamicPath[];
 };
 
 export type WidgetRemoveChild = {
@@ -277,10 +300,14 @@ export type MultipleWidgetDeletePayload = {
 export type WidgetResize = {
   widgetId: string;
   parentId: string;
-  leftColumn: number;
-  rightColumn: number;
-  topRow: number;
-  bottomRow: number;
+  leftColumn?: number;
+  rightColumn?: number;
+  topRow?: number;
+  bottomRow?: number;
+  mobileLeftColumn?: number;
+  mobileRightColumn?: number;
+  mobileTopRow?: number;
+  mobileBottomRow?: number;
   snapColumnSpace: number;
   snapRowSpace: number;
 };

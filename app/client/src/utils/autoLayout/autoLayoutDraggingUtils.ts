@@ -1,10 +1,7 @@
 import { FlexLayerAlignment } from "utils/autoLayout/constants";
-import {
-  FlexLayer,
-  LayerChild,
-} from "components/designSystems/appsmith/autoLayout/FlexBoxComponent";
+import type { FlexLayer, LayerChild } from "./autoLayoutTypes";
 import { isArray } from "lodash";
-import { CanvasWidgetsReduxState } from "reducers/entityReducers/canvasWidgetsReducer";
+import type { CanvasWidgetsReduxState } from "reducers/entityReducers/canvasWidgetsReducer";
 import { updateWidgetPositions } from "./positionUtils";
 
 /**
@@ -73,6 +70,7 @@ export function updateRelationships(
   parentId: string,
   onlyUpdateFlexLayers = false,
   isMobile = false,
+  mainCanvasWidth: number,
 ): CanvasWidgetsReduxState {
   const widgets = { ...allWidgets };
   // Check if parent has changed
@@ -88,7 +86,7 @@ export function updateRelationships(
       if (prevParentId !== undefined) {
         prevParents.push(prevParentId);
         const prevParent = Object.assign({}, widgets[prevParentId]);
-        if (prevParent && prevParent.children && isArray(prevParent.children)) {
+        if (isArray(prevParent.children)) {
           const updatedPrevParent = {
             ...prevParent,
             children: onlyUpdateFlexLayers
@@ -116,7 +114,12 @@ export function updateRelationships(
   }
   if (prevParents.length) {
     for (const id of prevParents) {
-      const updatedWidgets = updateWidgetPositions(widgets, id, isMobile);
+      const updatedWidgets = updateWidgetPositions(
+        widgets,
+        id,
+        isMobile,
+        mainCanvasWidth,
+      );
       return updatedWidgets;
     }
   }

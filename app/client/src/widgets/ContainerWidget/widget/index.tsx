@@ -1,25 +1,22 @@
 import React from "react";
 
-import {
-  CONTAINER_GRID_PADDING,
-  FLEXBOX_PADDING,
-  GridDefaults,
-  MAIN_CONTAINER_WIDGET_ID,
-  WIDGET_PADDING,
-} from "constants/WidgetConstants";
-import WidgetFactory, { DerivedPropertiesMap } from "utils/WidgetFactory";
-import ContainerComponent, { ContainerStyle } from "../component";
+import type { DerivedPropertiesMap } from "utils/WidgetFactory";
+import WidgetFactory from "utils/WidgetFactory";
+import type { ContainerStyle } from "../component";
+import ContainerComponent from "../component";
 
-import BaseWidget, { WidgetProps, WidgetState } from "widgets/BaseWidget";
+import type { WidgetProps, WidgetState } from "widgets/BaseWidget";
+import BaseWidget from "widgets/BaseWidget";
 
 import { ValidationTypes } from "constants/WidgetValidation";
-
 import { compact, map, sortBy } from "lodash";
 import WidgetsMultiSelectBox from "pages/Editor/WidgetsMultiSelectBox";
 
-import { Stylesheet } from "entities/AppTheming";
+import type { Stylesheet } from "entities/AppTheming";
 import { Positioning } from "utils/autoLayout/constants";
-import { getResponsiveLayoutConfig } from "utils/layoutPropertiesUtils";
+import { isAutoHeightEnabledForWidget } from "widgets/WidgetUtils";
+import { getSnappedGrid } from "sagas/WidgetOperationUtils";
+import { ReduxActionTypes } from "ce/constants/ReduxActionConstants";
 
 export class ContainerWidget extends BaseWidget<
   ContainerWidgetProps<WidgetProps>,
@@ -66,7 +63,6 @@ export class ContainerWidget extends BaseWidget<
           },
         ],
       },
-      ...getResponsiveLayoutConfig(this.getWidgetType()),
     ];
   }
 
@@ -110,6 +106,7 @@ export class ContainerWidget extends BaseWidget<
             isBindProperty: true,
             isTriggerProperty: false,
             validation: { type: ValidationTypes.NUMBER },
+            postUpdateAction: ReduxActionTypes.CHECK_CONTAINERS_FOR_AUTO_HEIGHT,
           },
           {
             propertyName: "borderRadius",
@@ -148,10 +145,6 @@ export class ContainerWidget extends BaseWidget<
     return {};
   }
 
-  componentDidMount(): void {
-    super.componentDidMount();
-  }
-
   static getStylesheetConfig(): Stylesheet {
     return {
       borderRadius: "{{appsmith.theme.borderRadius.appBorderRadius}}",
@@ -161,30 +154,9 @@ export class ContainerWidget extends BaseWidget<
 
   getSnapSpaces = () => {
     const { componentWidth } = this.getComponentDimensions();
-    // For all widgets inside a container, we remove both container padding as well as widget padding from component width
-    let padding = (CONTAINER_GRID_PADDING + WIDGET_PADDING) * 2;
-    if (
-      this.props.widgetId === MAIN_CONTAINER_WIDGET_ID ||
-      this.props.type === "CONTAINER_WIDGET"
-    ) {
-      //For MainContainer and any Container Widget padding doesn't exist coz there is already container padding.
-      padding =
-        this.props.positioning === Positioning.Vertical
-          ? FLEXBOX_PADDING * 2
-          : CONTAINER_GRID_PADDING * 2;
-    }
-    if (this.props.noPad) {
-      // Widgets like ListWidget choose to have no container padding so will only have widget padding
-      padding = WIDGET_PADDING * 2;
-    }
-    let width = componentWidth;
-    width -= padding;
-    return {
-      snapRowSpace: GridDefaults.DEFAULT_GRID_ROW_HEIGHT,
-      snapColumnSpace: componentWidth
-        ? width / GridDefaults.DEFAULT_GRID_COLUMNS
-        : 0,
-    };
+    const { snapGrid } = getSnappedGrid(this.props, componentWidth);
+
+    return snapGrid;
   };
 
   renderChildWidget(childWidgetData: WidgetProps): React.ReactNode {
@@ -205,9 +177,8 @@ export class ContainerWidget extends BaseWidget<
     childWidget.positioning =
       childWidget?.positioning || this.props.positioning;
     childWidget.useAutoLayout = this.props.positioning
-      ? this.props.positioning !== Positioning.Fixed
+      ? this.props.positioning === Positioning.Vertical
       : false;
-
     return WidgetFactory.createWidget(childWidget, this.props.renderMode);
   }
 
@@ -224,13 +195,12 @@ export class ContainerWidget extends BaseWidget<
   };
 
   renderAsContainerComponent(props: ContainerWidgetProps<WidgetProps>) {
-    //ToDo: Ashok Need a better way of doing this.
-    const useAutoLayout = this.props.positioning
-      ? this.props.positioning !== Positioning.Fixed
-      : false;
-    const shouldScroll = props.shouldScrollContents && !useAutoLayout;
+    const isAutoHeightEnabled: boolean =
+      isAutoHeightEnabledForWidget(this.props) &&
+      !isAutoHeightEnabledForWidget(this.props, true) &&
+      this.props.positioning !== Positioning.Vertical;
     return (
-      <ContainerComponent {...props} shouldScrollContents={shouldScroll}>
+      <ContainerComponent {...props} noScroll={isAutoHeightEnabled}>
         <WidgetsMultiSelectBox
           {...this.getSnapSpaces()}
           noContainerOffset={!!props.noContainerOffset}
