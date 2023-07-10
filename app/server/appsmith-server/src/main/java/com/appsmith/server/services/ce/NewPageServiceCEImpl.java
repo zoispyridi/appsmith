@@ -121,12 +121,10 @@ public class NewPageServiceCEImpl extends BaseService<NewPageRepository, NewPage
 
     @Override
     public Mono<NewPage> findById(String pageId, AclPermission aclPermission) {
-        return repository.findById(pageId, aclPermission)
-                .elapsed()
-                .map(pair -> {
-                    log.debug("Time elapsed findById Internal func parallel Step 1: {} ms", pair.getT1());
-                    return pair.getT2();
-                });
+        return repository.findById(pageId, aclPermission).elapsed().map(pair -> {
+            log.debug("Time elapsed findById Internal func parallel Step 1: {} ms", pair.getT1());
+            return pair.getT2();
+        });
     }
 
     @Override
@@ -594,15 +592,17 @@ public class NewPageServiceCEImpl extends BaseService<NewPageRepository, NewPage
                     .switchIfEmpty(Mono.error(
                             new AppsmithException(AppsmithError.NO_RESOURCE_FOUND, FieldName.PAGE, defaultPageId)));
         }
-        return repository.findPageByBranchNameAndDefaultPageId(branchName, defaultPageId, permission)
+        return repository
+                .findPageByBranchNameAndDefaultPageId(branchName, defaultPageId, permission)
                 .elapsed()
                 .map(pair -> {
-                    log.debug("Time elapsed findPageByBranchNameAndDefaultPageId Internal func parallel Step 1: {} ms", pair.getT1());
+                    log.debug(
+                            "Time elapsed findPageByBranchNameAndDefaultPageId Internal func parallel Step 1: {} ms",
+                            pair.getT1());
                     return pair.getT2();
                 })
-                .switchIfEmpty(Mono.error(
-                        new AppsmithException(AppsmithError.NO_RESOURCE_FOUND, FieldName.PAGE, defaultPageId + ", " + branchName))
-                );
+                .switchIfEmpty(Mono.error(new AppsmithException(
+                        AppsmithError.NO_RESOURCE_FOUND, FieldName.PAGE, defaultPageId + ", " + branchName)));
     }
 
     @Override
