@@ -60,6 +60,7 @@ import reactor.core.publisher.Mono;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -239,7 +240,18 @@ public class ApplicationPageServiceCEImpl implements ApplicationPageServiceCE {
 
     @Override
     public Mono<PageDTO> getPage(NewPage newPage, boolean viewMode) {
-        return newPageService.getPageByViewMode(newPage, viewMode).map(page -> getDslEscapedPage(page));
+        return newPageService.getPageByViewMode(newPage, viewMode)
+                .elapsed()
+                .map(pair -> {
+                    log.debug("Time elapsed getPageByViewMode inside  getPage External func Step 2.2.1: {} ms", pair.getT1());
+                    return pair.getT2();
+                })
+                .map(page -> getDslEscapedPage(page))
+                .elapsed()
+                .map(pair -> {
+                    log.debug("Time elapsed getDslEscapedPage inside  getPage External func Step 2.2.2: {} ms", pair.getT1());
+                    return pair.getT2();
+                });
     }
 
     @Override
@@ -259,8 +271,29 @@ public class ApplicationPageServiceCEImpl implements ApplicationPageServiceCE {
         AclPermission permission = pagePermission.getReadPermission();
         return newPageService
                 .findByBranchNameAndDefaultPageId(branchName, defaultPageId, permission)
+                .elapsed()
+                .map(pair -> {
+                    log.debug("Time elapsed findByBranchNameAndDefaultPageId External func Step 1: {} ms", pair.getT1());
+                    return pair.getT2();
+                })
                 .flatMap(newPage -> {
-                    return sendPageViewAnalyticsEvent(newPage, viewMode).then(getPage(newPage, viewMode));
+                    return sendPageViewAnalyticsEvent(newPage, viewMode);
+                })
+                .delayElement(Duration.ofMillis(500))
+                .elapsed()
+                .map(pair -> {
+                    log.debug(
+                            "Time elapsed sendPageViewAnalyticsEvent External func Step 2.1: {} ms",
+                            pair.getT1());
+                    return pair.getT2();
+                })
+                .flatMap(newPage -> {
+                    return getPage(newPage, viewMode);
+                })
+                .elapsed()
+                .map(pair -> {
+                    log.debug("Time elapsed sendPageViewAnalyticsEvent and  getPage Combined External func Step 2: {} ms", pair.getT1());
+                    return pair.getT2();
                 })
                 .map(responseUtils::updatePageDTOWithDefaultResources);
     }
@@ -381,7 +414,7 @@ public class ApplicationPageServiceCEImpl implements ApplicationPageServiceCE {
                         defaults.setApplicationId(page.getApplicationId());
                         page.setDefaultResources(defaults);
                     }
-                    // Set the page policies
+                    //Set the page policies
                     generateAndSetPagePolicies(savedApplication, page);
 
                     return newPageService
@@ -954,8 +987,7 @@ public class ApplicationPageServiceCEImpl implements ApplicationPageServiceCE {
      */
     private Mono<PageDTO> deleteUnpublishedPageEx(String id, Optional<AclPermission> permission) {
 
-        return newPageService
-                .findById(id, permission)
+        return newPageService.findById(id, permission)
                 .switchIfEmpty(Mono.error(new AppsmithException(AppsmithError.NO_RESOURCE_FOUND, FieldName.PAGE, id)))
                 .flatMap(page -> {
                     log.debug(
