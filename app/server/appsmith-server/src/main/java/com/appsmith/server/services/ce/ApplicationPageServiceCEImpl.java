@@ -60,7 +60,6 @@ import reactor.core.publisher.Mono;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -285,7 +284,6 @@ public class ApplicationPageServiceCEImpl implements ApplicationPageServiceCE {
                 .flatMap(newPage -> {
                     return sendPageViewAnalyticsEvent(newPage, viewMode);
                 })
-                .delayElement(Duration.ofMillis(500))
                 .elapsed()
                 .map(pair -> {
                     log.debug("Time elapsed sendPageViewAnalyticsEvent External func Step 2.1: {} ms", pair.getT1());

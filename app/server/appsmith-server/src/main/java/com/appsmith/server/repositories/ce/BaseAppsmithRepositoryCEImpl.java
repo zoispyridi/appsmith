@@ -13,6 +13,7 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
 import com.mongodb.client.result.UpdateResult;
 import com.querydsl.core.types.Path;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.GenericTypeResolver;
 import org.springframework.data.domain.Sort;
@@ -56,6 +57,7 @@ import static org.springframework.data.mongodb.core.query.Criteria.where;
  * ```
  * Ref: https://theappsmith.slack.com/archives/CPQNLFHTN/p1669100205502599?thread_ts=1668753437.497369&cid=CPQNLFHTN
  */
+@Slf4j
 public abstract class BaseAppsmithRepositoryCEImpl<T extends BaseDomain> {
 
     protected final ReactiveMongoOperations mongoOperations;
@@ -149,26 +151,40 @@ public abstract class BaseAppsmithRepositoryCEImpl<T extends BaseDomain> {
             return Mono.error(new AppsmithException(AppsmithError.INVALID_PARAMETER, FieldName.ID));
         }
 
-        return getCurrentUserPermissionGroupsIfRequired(permission).flatMap(permissionGroups -> {
-            Query query = new Query(getIdCriteria(id));
-            query.addCriteria(notDeleted());
-            Optional<Criteria> userAcl = userAcl(permissionGroups, permission);
-            if (userAcl.isPresent()) {
-                query.addCriteria(userAcl.get());
-            }
+        return getCurrentUserPermissionGroupsIfRequired(permission)
+                .flatMap(permissionGroups -> {
+                    final long startTime = System.currentTimeMillis();
+                    Query query = new Query(getIdCriteria(id));
+                    query.addCriteria(notDeleted());
+                    Optional<Criteria> userAcl = userAcl(permissionGroups, permission);
+                    if (userAcl.isPresent()) {
+                        query.addCriteria(userAcl.get());
+                    }
 
-            if (!isEmpty(projectionFieldNames)) {
-                projectionFieldNames.stream().forEach(projectionFieldName -> {
-                    query.fields().include(projectionFieldName);
+                    if (!isEmpty(projectionFieldNames)) {
+                        projectionFieldNames.stream().forEach(projectionFieldName -> {
+                            query.fields().include(projectionFieldName);
+                        });
+                    }
+                    final long endTime = System.currentTimeMillis();
+                    log.debug("Time Elapsed for Building Query in findByID {} ms", (endTime - startTime));
+
+                    return mongoOperations
+                            .query(this.genericDomain)
+                            .matching(query)
+                            .one()
+                            .elapsed()
+                            .map(pair -> {
+                                log.debug("TIME ELAPSED FOR QUERYING DB IN FINDBYID {} ms", pair.getT1());
+                                return pair.getT2();
+                            })
+                            .flatMap(obj -> setUserPermissionsInObject(obj, permissionGroups));
+                })
+                .elapsed()
+                .map(pair -> {
+                    log.debug("TIME ELAPSED FINDBYID TOTAL {} ms", pair.getT1());
+                    return pair.getT2();
                 });
-            }
-
-            return mongoOperations
-                    .query(this.genericDomain)
-                    .matching(query)
-                    .one()
-                    .flatMap(obj -> setUserPermissionsInObject(obj, permissionGroups));
-        });
     }
 
     public Mono<T> findById(String id, Optional<AclPermission> permission) {
@@ -310,7 +326,12 @@ public abstract class BaseAppsmithRepositoryCEImpl<T extends BaseDomain> {
         return ReactiveSecurityContextHolder.getContext()
                 .map(ctx -> ctx.getAuthentication())
                 .map(auth -> auth.getPrincipal())
-                .flatMap(principal -> getAllPermissionGroupsForUser((User) principal));
+                .flatMap(principal -> getAllPermissionGroupsForUser((User) principal))
+                .elapsed()
+                .map(pair -> {
+                    log.debug("TIME ELAPSED FOR FETCH USER PERMISSION IN FINDBYID INTERNAL {} ms", pair.getT1());
+                    return pair.getT2();
+                });
     }
 
     protected Mono<T> queryOne(List<Criteria> criterias, List<String> projectionFieldNames, AclPermission permission) {

@@ -121,10 +121,7 @@ public class NewPageServiceCEImpl extends BaseService<NewPageRepository, NewPage
 
     @Override
     public Mono<NewPage> findById(String pageId, AclPermission aclPermission) {
-        return repository.findById(pageId, aclPermission).elapsed().map(pair -> {
-            log.debug("Time elapsed findById Internal func parallel Step 1: {} ms", pair.getT1());
-            return pair.getT2();
-        });
+        return repository.findById(pageId, aclPermission);
     }
 
     @Override
@@ -240,6 +237,11 @@ public class NewPageServiceCEImpl extends BaseService<NewPageRepository, NewPage
 
         Mono<Application> applicationMono = applicationService
                 .findById(applicationId, permission)
+                .elapsed()
+                .map(pair -> {
+                    log.debug("TIME TAKEN BY FIND BY ID: {} ms", pair.getT1());
+                    return pair.getT2();
+                })
                 .switchIfEmpty(Mono.error(new AppsmithException(
                         AppsmithError.ACL_NO_RESOURCE_FOUND, FieldName.APPLICATION, applicationId)))
                 // Throw a 404 error if the application has never been published

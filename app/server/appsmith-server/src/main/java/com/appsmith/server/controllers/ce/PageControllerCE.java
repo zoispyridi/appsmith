@@ -211,6 +211,11 @@ public class PageControllerCE {
                 mode);
         return newPageService
                 .findApplicationPages(applicationId, pageId, branchName, mode)
+                .elapsed()
+                .map(pair -> {
+                    log.debug("Time elapsed GET PAGES TOTAL {} ms", pair.getT1());
+                    return pair.getT2();
+                })
                 .map(resources -> new ResponseDTO<>(HttpStatus.OK.value(), resources, null));
     }
 }
