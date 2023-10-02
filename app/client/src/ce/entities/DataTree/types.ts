@@ -15,7 +15,7 @@ import type { MetaState } from "reducers/entityReducers/metaReducer";
 import type { AppDataState } from "reducers/entityReducers/appReducer";
 import type { JSCollectionDataState } from "reducers/entityReducers/jsActionsReducer";
 import type { AppTheme } from "entities/AppTheming";
-import type { AppPositioningTypes } from "reducers/entityReducers/pageListReducer";
+import type { LayoutSystemTypes } from "reducers/entityReducers/pageListReducer";
 import type { LoadingEntitiesState } from "reducers/evaluationReducers/loadingEntitiesReducer";
 
 export type ActionDispatcher = (...args: any[]) => ActionDescription;
@@ -194,8 +194,8 @@ export type DataTreeSeed = {
   metaWidgets: MetaWidgetsReduxState;
   isMobile: boolean;
   moduleInputs: Record<string, ModuleInput>;
-  appPositioningType: AppPositioningTypes;
   loadingEntities: LoadingEntitiesState;
+  layoutSystemType: LayoutSystemTypes;
 };
 
 export type ModuleInput = {
