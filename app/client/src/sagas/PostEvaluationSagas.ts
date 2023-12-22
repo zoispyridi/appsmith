@@ -16,7 +16,7 @@ import {
   isAction,
   isWidget,
 } from "@appsmith/workers/Evaluation/evaluationUtils";
-import type { EvaluationError } from "utils/DynamicBindingUtils";
+import type { EvaluationError, DependencyMap } from "utils/DynamicBindingUtils";
 import { getEvalErrorPath } from "utils/DynamicBindingUtils";
 import { find, get, some } from "lodash";
 import LOG_TYPE from "entities/AppsmithConsole/logtype";
@@ -46,6 +46,13 @@ import type {
   JSVarMutatedEvents,
 } from "workers/Evaluation/types";
 import { endSpan, startRootSpan } from "UITelemetry/generateTraces";
+import {
+  getActions,
+  getDatasources,
+} from "@appsmith/selectors/entitiesSelector";
+import type { Datasource } from "../entities/Datasource";
+import type { ActionData } from "@appsmith/reducers/entityReducers/actionsReducer";
+import { getDependencyChain } from "../components/editorComponents/Debugger/helpers";
 
 let successfulBindingsMap: SuccessfulBindingMap | undefined;
 
@@ -83,6 +90,36 @@ export function* dynamicTriggerErrorHandler(errors: any[]) {
   }
 }
 
+function* getActionsWithUserData(dependencies: DependencyMap) {
+  const datasources: Datasource[] = yield select(getDatasources);
+  const actions: ActionData[] = yield select(getActions);
+
+  const userDatasources: Record<string, true> = {};
+  datasources.forEach((datasource) => {
+    if (!datasource.isMock && !datasource.isTemplate) {
+      userDatasources[datasource.id] = true;
+    }
+  });
+
+  const pathsConnectedToUserData: Record<string, true> = {};
+  actions.forEach((action) => {
+    if (action.config.datasource.id) {
+      if (action.config.datasource.id in userDatasources) {
+        const chain: string[] = getDependencyChain(
+          `${action.config.name}.data`,
+          dependencies,
+        );
+        const last = chain.pop();
+        if (last) {
+          pathsConnectedToUserData[last] = true;
+        }
+      }
+    }
+  });
+
+  return pathsConnectedToUserData;
+}
+
 export function* logSuccessfulBindings(
   unEvalTree: UnEvalTree,
   dataTree: DataTree,
@@ -91,6 +128,7 @@ export function* logSuccessfulBindings(
   isNewWidgetAdded: boolean,
   configTree: ConfigTree,
   undefinedEvalValuesMap: Record<string, boolean>,
+  dependencies: DependencyMap,
 ) {
   const appMode: APP_MODE | undefined = yield select(getAppMode);
   if (appMode === APP_MODE.PUBLISHED) return;
@@ -102,6 +140,10 @@ export function* logSuccessfulBindings(
 
   const workspaceId: string = yield select(getCurrentWorkspaceId);
   const instanceId: string = yield select(getInstanceId);
+  const userDataActions: Record<string, boolean> = yield call(
+    getActionsWithUserData,
+    dependencies,
+  );
 
   evaluationOrder.forEach((evaluatedPath) => {
     const { entityName, propertyPath } =
@@ -163,6 +205,7 @@ export function* logSuccessfulBindings(
               isUndefined,
               orgId: workspaceId,
               instanceId,
+              isUserData: evaluatedPath in userDataActions,
             });
           }
         }

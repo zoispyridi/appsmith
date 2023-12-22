@@ -207,6 +207,7 @@ export function* updateDataTreeHandler(
         isNewWidgetAdded,
         configTree,
         undefinedEvalValuesMap,
+        dependencies,
       );
     }
 
