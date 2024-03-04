@@ -5,7 +5,7 @@ import type { RouteComponentProps } from "react-router-dom";
 import { withRouter } from "react-router-dom";
 import type { BuilderRouteParams } from "constants/routes";
 import type { AppState } from "@appsmith/reducers";
-import IDE from "./IDE";
+import IDE from "components/IDE";
 import {
   getCurrentApplicationId,
   getIsEditorInitialized,
@@ -45,6 +45,7 @@ import DisableAutocommitModal from "./gitSync/DisableAutocommitModal";
 import GitSettingsModal from "./gitSync/GitSettingsModal";
 import ReconfigureCDKeyModal from "@appsmith/components/gitComponents/ReconfigureCDKeyModal";
 import DisableCDModal from "@appsmith/components/gitComponents/DisableCDModal";
+import { states } from "./IDE/AppIDE/constants";
 
 interface EditorProps {
   currentApplicationId?: string;
@@ -166,7 +167,7 @@ class Editor extends Component<Props> {
             </title>
           </Helmet>
           <GlobalHotKeys>
-            <IDE />
+            <IDE states={states} />
             <GitSyncModal />
             <GitSettingsModal />
             <DisableCDModal />
