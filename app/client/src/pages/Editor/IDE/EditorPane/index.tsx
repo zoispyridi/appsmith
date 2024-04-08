@@ -16,7 +16,7 @@ const EditorPane = ({ match: { path } }: RouteComponentProps) => {
 
   return (
     <Flex
-      className="ide-editor-left-pane"
+      className="ide-editor-left-pane transition-all ease-in-out delay-550"
       flexDirection="column"
       gap="spacing-2"
       height="100%"

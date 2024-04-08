@@ -6,7 +6,6 @@ import QueriesSegment from "./Query";
 import WidgetsSegment from "./UI";
 import JSSegment from "./JS";
 import SegmentedHeader from "./components/SegmentedHeader";
-import EditorTabs from "../EditorTabs/SplitScreenTabs";
 import {
   jsSegmentRoutes,
   querySegmentRoutes,
@@ -29,7 +28,6 @@ const EditorPaneSegments = () => {
       overflow="hidden"
     >
       <SegmentedHeader />
-      <EditorTabs />
       <Flex
         className="ide-editor-left-pane__content"
         flexDirection="column"

@@ -33,7 +33,7 @@ import {
 } from "@appsmith/entities/IDE/constants";
 import QueryEditor from "pages/Editor/QueryEditor";
 import AddQuery from "pages/Editor/IDE/EditorPane/Query/Add";
-import ListQuery from "pages/Editor/IDE/EditorPane/Query/List";
+// import ListQuery from "pages/Editor/IDE/EditorPane/Query/List";
 import type { AppState } from "@appsmith/reducers";
 import keyBy from "lodash/keyBy";
 import { getPluginEntityIcon } from "pages/Editor/Explorer/ExplorerIcons";
@@ -41,6 +41,7 @@ import type { ListItemProps } from "design-system";
 import { BlankStateContainer } from "pages/Editor/IDE/EditorPane/Query/BlankStateContainer";
 import { useCurrentEditorState } from "pages/Editor/IDE/hooks";
 import CurlImportEditor from "pages/Editor/APIEditor/CurlImportEditor";
+import FullScreenQuery from "pages/Editor/IDE/EditorPane/Query/FullScreen";
 
 export const useQueryAdd = () => {
   const location = useLocation();
@@ -176,7 +177,7 @@ export const useQuerySegmentRoutes = (path: string): UseRoutes => {
     {
       key: "ListQuery",
       exact: false,
-      component: ListQuery,
+      component: FullScreenQuery,
       path: [path],
     },
   ];

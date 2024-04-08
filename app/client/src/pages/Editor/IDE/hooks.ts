@@ -23,8 +23,8 @@ import pickBy from "lodash/pickBy";
 import { getFocusInfo } from "selectors/focusHistorySelectors";
 import { getCurrentGitBranch } from "selectors/gitSyncSelectors";
 import {
-  DEFAULT_EDITOR_PANE_WIDTH,
   DEFAULT_SPLIT_SCREEN_WIDTH,
+  EDITOR_PANE_FULL_SCREEN_WIDTH,
 } from "constants/AppConstants";
 import { useFeatureFlag } from "utils/hooks/useFeatureFlag";
 import { FEATURE_FLAG } from "@appsmith/entities/FeatureFlag";
@@ -111,7 +111,7 @@ export const useCurrentEditorState = () => {
 };
 
 export const useEditorPaneWidth = (): string => {
-  const [width, setWidth] = useState(DEFAULT_EDITOR_PANE_WIDTH + "px");
+  const [width, setWidth] = useState(EDITOR_PANE_FULL_SCREEN_WIDTH);
   const isSideBySideEnabled = useSelector(getIsSideBySideEnabled);
   const editorMode = useSelector(getIDEViewMode);
   const { segment } = useCurrentEditorState();
@@ -125,7 +125,7 @@ export const useEditorPaneWidth = (): string => {
       // 1px is propertypane border width
       setWidth(DEFAULT_SPLIT_SCREEN_WIDTH);
     } else {
-      setWidth(DEFAULT_EDITOR_PANE_WIDTH + "px");
+      setWidth(EDITOR_PANE_FULL_SCREEN_WIDTH);
     }
   }, [isSideBySideEnabled, editorMode, segment, propertyPaneWidth]);
 
