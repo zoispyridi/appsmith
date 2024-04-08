@@ -5,7 +5,6 @@ import { ANVIL_EDITOR_TEST } from "./Constants.js";
 
 import EditorNavigation, {
   EntityType,
-  AppSidebarButton,
   AppSidebar,
   PageLeftPane,
   PagePaneSegment,
@@ -24,7 +23,6 @@ const loginPage = require("../locators/LoginPage.json");
 const signupPage = require("../locators/SignupPage.json");
 import homePage from "../locators/HomePage";
 
-const pages = require("../locators/Pages.json");
 const commonlocators = require("../locators/commonlocators.json");
 const widgetsPage = require("../locators/Widgets.json");
 import ApiEditor from "../locators/ApiEditor";
@@ -388,14 +386,6 @@ Cypress.Commands.add("DeleteApp", (appName) => {
     .click({ force: true });
   cy.get(homePage.deleteAppConfirm).should("be.visible").click({ force: true });
   cy.get(homePage.deleteApp).contains("Are you sure?").click({ force: true });
-});
-
-Cypress.Commands.add("DeletepageFromSideBar", () => {
-  cy.xpath(pages.popover).last().click({ force: true });
-  cy.get(pages.deletePage).first().click({ force: true });
-  cy.get(pages.deletePageConfirm).first().click({ force: true });
-  // eslint-disable-next-line cypress/no-unnecessary-waiting
-  cy.wait(2000);
 });
 
 Cypress.Commands.add("LogOut", (toCheckgetPluginForm = true) => {
@@ -881,7 +871,7 @@ Cypress.Commands.add("validateHTMLText", (widgetCss, htmlTag, value) => {
 });
 Cypress.Commands.add("setTinyMceContent", (tinyMceId, content) => {
   cy.window().then((win) => {
-    const editor = win.tinymce.editors[tinyMceId];
+    const editor = win.tinymce.EditorManager.get(tinyMceId);
     editor.setContent(content);
   });
 });
@@ -1337,6 +1327,9 @@ Cypress.Commands.add("createSuperUser", () => {
   cy.wait(2000);
 
   if (CURRENT_REPO === REPO.CE) {
+    assertHelper.AssertNetworkStatus("@getApplicationsOfWorkspace");
+    agHelper.WaitUntilEleAppear(onboarding.locators.skipStartFromData);
+    agHelper.GetNClick(onboarding.locators.skipStartFromData);
     cy.get("#loading").should("not.exist");
     AppSidebar.assertVisible();
   }
@@ -1952,22 +1945,6 @@ Cypress.Commands.add(
   },
 );
 
-Cypress.Commands.add("CreatePage", () => {
-  AppSidebar.navigate(AppSidebarButton.Editor);
-  cy.get(pages.AddPage).first().click();
-  cy.xpath("//span[text()='New blank page']/parent::div").click();
-});
-
-Cypress.Commands.add("GenerateCRUD", () => {
-  cy.get(pages.AddPage).first().click();
-  cy.xpath("//span[text()='Generate page with data']/parent::div").click();
-});
-
-Cypress.Commands.add("AddPageFromTemplate", () => {
-  cy.get(pages.AddPage).first().click();
-  cy.xpath("//span[text()='Add page from template']/parent::div").click();
-});
-
 Cypress.Commands.add(`verifyCallCount`, (alias, expectedNumberOfCalls) => {
   cy.wait(alias);
   cy.get(`${alias}.all`).should("have.length", expectedNumberOfCalls);
@@ -2101,3 +2078,30 @@ Cypress.Commands.add("stubPricingPage", () => {
     }).as("pricingPage");
   });
 });
+
+/**
+ * @param testID
+ * @returns
+ *
+ * This function act as a data-testid selector. In
+ * any case it is decided to rename the data-testid,
+ * it's thing single function that needs to be updated.
+ *
+ */
+Cypress.Commands.add("selectByTestId", (testId) => {
+  return cy.get(`[data-testid="${testId}"]`);
+});
+
+/**
+ * @param tooltipSelector
+ * @param expectedText
+ * @returns
+ *
+ *
+ */
+Cypress.Commands.add(
+  "assertTooltipPresence",
+  (tooltipSelector = "", expectedText) => {
+    cy.get(tooltipSelector).should("be.visible").and("contain", expectedText);
+  },
+);

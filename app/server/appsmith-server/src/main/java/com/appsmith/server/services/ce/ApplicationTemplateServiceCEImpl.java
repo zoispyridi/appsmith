@@ -4,7 +4,7 @@ import com.appsmith.external.constants.AnalyticsEvents;
 import com.appsmith.external.converters.ISOStringToInstantConverter;
 import com.appsmith.server.applications.base.ApplicationService;
 import com.appsmith.server.configurations.CloudServicesConfig;
-import com.appsmith.server.constants.ArtifactJsonType;
+import com.appsmith.server.constants.ArtifactType;
 import com.appsmith.server.constants.FieldName;
 import com.appsmith.server.domains.Application;
 import com.appsmith.server.domains.ApplicationMode;
@@ -160,7 +160,8 @@ public class ApplicationTemplateServiceCEImpl implements ApplicationTemplateServ
                 });
     }
 
-    private Mono<ApplicationJson> getApplicationJsonFromTemplate(String templateId) {
+    @Override
+    public Mono<ApplicationJson> getApplicationJsonFromTemplate(String templateId) {
         final String baseUrl = cloudServicesConfig.getBaseUrl();
         final String templateUrl = baseUrl + "/api/v1/app-templates/" + templateId + "/application";
         /*
@@ -210,7 +211,7 @@ public class ApplicationTemplateServiceCEImpl implements ApplicationTemplateServ
                     return applicationService.save(application).thenReturn(application);
                 })
                 .flatMap(application -> importService.getArtifactImportDTO(
-                        application.getWorkspaceId(), application.getId(), application, ArtifactJsonType.APPLICATION))
+                        application.getWorkspaceId(), application.getId(), application, ArtifactType.APPLICATION))
                 .flatMap(importableArtifactDTO -> {
                     ApplicationImportDTO applicationImportDTO = (ApplicationImportDTO) importableArtifactDTO;
                     Application application = applicationImportDTO.getApplication();
@@ -222,12 +223,12 @@ public class ApplicationTemplateServiceCEImpl implements ApplicationTemplateServ
                     final Map<String, Object> data = Map.of(
                             FieldName.APPLICATION_ID, application.getId(),
                             FieldName.WORKSPACE_ID, application.getWorkspaceId(),
-                            FieldName.TEMPLATE_APPLICATION_NAME, application.getName(),
+                            FieldName.TEMPLATE_APPLICATION_NAME, application.getForkedFromTemplateTitle(),
                             FieldName.SOURCE, "Templates page",
                             FieldName.EVENT_DATA, eventData);
 
                     return analyticsService
-                            .sendObjectEvent(AnalyticsEvents.FORK, applicationTemplate, data)
+                            .sendObjectEvent(AnalyticsEvents.TEMPLATE_FORK, applicationTemplate, data)
                             .thenReturn(applicationImportDTO);
                 });
     }
@@ -280,6 +281,11 @@ public class ApplicationTemplateServiceCEImpl implements ApplicationTemplateServ
             List<String> pagesToImport) {
         Mono<ApplicationImportDTO> importedApplicationMono = getApplicationJsonFromTemplate(templateId)
                 .flatMap(applicationJson -> {
+                    String templateName = "";
+                    if (applicationJson.getExportedApplication() != null
+                            && applicationJson.getExportedApplication().getName() != null) {
+                        templateName = applicationJson.getExportedApplication().getName();
+                    }
                     if (branchName != null) {
                         return applicationService
                                 .findByBranchNameAndDefaultApplicationId(
@@ -290,34 +296,55 @@ public class ApplicationTemplateServiceCEImpl implements ApplicationTemplateServ
                                         branchName,
                                         applicationJson,
                                         pagesToImport))
-                                .map(importableArtifact -> (Application) importableArtifact);
+                                .map(importableArtifact -> (Application) importableArtifact)
+                                .zipWith(Mono.just(templateName));
                     }
                     return importService
                             .mergeArtifactExchangeJsonWithImportableArtifact(
-                                    organizationId, applicationId, branchName, applicationJson, pagesToImport)
-                            .map(importableArtifact -> (Application) importableArtifact);
+                                    organizationId, applicationId, null, applicationJson, pagesToImport)
+                            .map(importableArtifact -> (Application) importableArtifact)
+                            .zipWith(Mono.just(templateName));
                 })
-                .flatMap(application -> importService.getArtifactImportDTO(
-                        application.getWorkspaceId(), application.getId(), application, ArtifactJsonType.APPLICATION))
-                .flatMap(importableArtifactDTO -> {
-                    ApplicationImportDTO applicationImportDTO = (ApplicationImportDTO) importableArtifactDTO;
-                    responseUtils.updateApplicationWithDefaultResources(applicationImportDTO.getApplication());
-                    Application application = applicationImportDTO.getApplication();
-                    ApplicationTemplate applicationTemplate = new ApplicationTemplate();
-                    applicationTemplate.setId(templateId);
-                    final Map<String, Object> eventData = Map.of(
-                            FieldName.APP_MODE, ApplicationMode.EDIT.toString(), FieldName.APPLICATION, application);
+                .flatMap(tuple -> {
+                    Application application = tuple.getT1();
+                    String templateTitle = tuple.getT2();
+                    application.setForkedFromTemplateTitle(templateTitle);
+                    return importService
+                            .getArtifactImportDTO(
+                                    application.getWorkspaceId(),
+                                    application.getId(),
+                                    application,
+                                    ArtifactType.APPLICATION)
+                            .flatMap(importableArtifactDTO -> {
+                                ApplicationImportDTO applicationImportDTO =
+                                        (ApplicationImportDTO) importableArtifactDTO;
+                                responseUtils.updateApplicationWithDefaultResources(
+                                        applicationImportDTO.getApplication());
+                                Application application1 = applicationImportDTO.getApplication();
+                                ApplicationTemplate applicationTemplate = new ApplicationTemplate();
+                                applicationTemplate.setId(templateId);
+                                final Map<String, Object> eventData = Map.of(
+                                        FieldName.APP_MODE,
+                                        ApplicationMode.EDIT.toString(),
+                                        FieldName.APPLICATION,
+                                        application);
 
-                    final Map<String, Object> data = Map.of(
-                            FieldName.APPLICATION_ID, application.getId(),
-                            FieldName.WORKSPACE_ID, application.getWorkspaceId(),
-                            FieldName.TEMPLATE_APPLICATION_NAME, application.getName(),
-                            FieldName.SOURCE, "Templates page",
-                            FieldName.EVENT_DATA, eventData);
+                                final Map<String, Object> data = Map.of(
+                                        FieldName.APPLICATION_ID,
+                                        application1.getId(),
+                                        FieldName.WORKSPACE_ID,
+                                        application1.getWorkspaceId(),
+                                        FieldName.TEMPLATE_APPLICATION_NAME,
+                                        templateTitle,
+                                        FieldName.SOURCE,
+                                        "Add New page",
+                                        FieldName.EVENT_DATA,
+                                        eventData);
 
-                    return analyticsService
-                            .sendObjectEvent(AnalyticsEvents.FORK, applicationTemplate, data)
-                            .thenReturn(applicationImportDTO);
+                                return analyticsService
+                                        .sendObjectEvent(AnalyticsEvents.TEMPLATE_FORK, applicationTemplate, data)
+                                        .thenReturn(applicationImportDTO);
+                            });
                 });
 
         return Mono.create(
@@ -409,7 +436,7 @@ public class ApplicationTemplateServiceCEImpl implements ApplicationTemplateServ
     @NotNull private Mono<Application> exportAppAndUpload(TemplateDTO resource, boolean isCommunityTemplate) {
         return exportService
                 .exportByArtifactIdAndBranchName(
-                        resource.getApplicationId(), resource.getBranchName(), ArtifactJsonType.APPLICATION)
+                        resource.getApplicationId(), resource.getBranchName(), ArtifactType.APPLICATION)
                 .map(artifactExchangeJson -> (ApplicationJson) artifactExchangeJson)
                 .flatMap(appJson -> {
                     TemplateUploadDTO communityTemplate =

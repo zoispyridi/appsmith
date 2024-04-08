@@ -122,8 +122,6 @@ function JSEditorForm({
 
   const [disableRunFunctionality, setDisableRunFunctionality] = useState(false);
 
-  // Currently active response (only changes upon execution)
-  const [activeResponse, setActiveResponse] = useState<JSAction | null>(null);
   const parseErrors = useSelector(
     (state: AppState) =>
       getJSCollectionParseErrors(state, currentJSCollection.name),
@@ -140,6 +138,10 @@ function JSEditorForm({
   const activeJSAction = getActionFromJsCollection(
     activeJSActionId,
     currentJSCollection,
+  );
+  // Currently active response (only changes upon execution)
+  const [activeResponse, setActiveResponse] = useState<JSAction | null>(
+    activeJSAction,
   );
 
   const [selectedJSActionOption, setSelectedJSActionOption] =
@@ -160,22 +162,24 @@ function JSEditorForm({
       // Hash here could mean to navigate (set cursor/focus) to a particular function
       // If the hash has a function name in this JS Object, we will set that
       const actionName = hash.substring(1);
-      const position = getJSPropertyLineFromName(
-        currentJSCollection.body,
-        actionName,
-      );
-      if (position) {
-        // Resetting the focus and position based on the cmd click navigation
-        dispatch(setFocusableInputField(`${currentJSCollection.name}.body`));
-        dispatch(
-          setCodeEditorCursorAction(
-            `${currentJSCollection.name}.body`,
-            position,
-            CursorPositionOrigin.Navigation,
-          ),
+      if (currentJSCollection.body) {
+        const position = getJSPropertyLineFromName(
+          currentJSCollection.body,
+          actionName,
         );
-        // Replace to remove the hash and set back the original URL
-        history.replace(window.location.pathname + window.location.search);
+        if (position) {
+          // Resetting the focus and position based on the cmd click navigation
+          dispatch(setFocusableInputField(`${currentJSCollection.name}.body`));
+          dispatch(
+            setCodeEditorCursorAction(
+              `${currentJSCollection.name}.body`,
+              position,
+              CursorPositionOrigin.Navigation,
+            ),
+          );
+          // Replace to remove the hash and set back the original URL
+          history.replace(window.location.pathname + window.location.search);
+        }
       }
     }
   }, [hash]);
