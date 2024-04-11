@@ -458,6 +458,16 @@ function setup_auto_heal(){
    fi
 }
 
+function setup_new_relic_agent(){
+   if [[ ${APPSMITH_ENABLE_NEW_RELIC_LOGGING-} = 1 ]]; then
+     # By default APPSMITH_ENABLE_NEW_RELIC_LOGGING=0
+     # To enable auto heal set APPSMITH_ENABLE_NEW_RELIC_LOGGING=1
+     curl -o /appsmith-stacks/newrelic-java.zip https://download.newrelic.com/newrelic/java-agent/newrelic-agent/current/newrelic-java.zip
+     unzip /appsmith-stacks/newrelic-java.zip -d /appsmith-stacks/
+     rm -rf /appsmith-stacks/newrelic-java.zip
+   fi
+}
+
 # Main Section
 init_loading_pages
 init_env_file
